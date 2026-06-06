@@ -105,8 +105,8 @@
     volumes:
       - "{{ nexus_data_volume }}:/nexus-data"
     ports:
-      - "{{ nexus_port }}:8081"
-      - "{{ nexus_docker_port }}:8082"
+      - "{{ nexus_bind_address }}:{{ nexus_port }}:8081"
+      - "{{ nexus_bind_address }}:{{ nexus_docker_port }}:8082"
     ulimits:
       - nofile:65536:65536
   become: true

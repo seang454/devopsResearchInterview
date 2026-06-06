@@ -4,7 +4,7 @@ variable "project_id" {
 }
 
 variable "gcp_adc_file" {
-  description = "Optional path to a Google Application Default Credentials JSON file. Leave empty to use normal ADC discovery."
+  description = "Optional ADC JSON path. Leave empty for automatic per-user ADC discovery, or use ~ for the current user's home directory."
   type        = string
   default     = ""
   sensitive   = true
@@ -149,8 +149,14 @@ variable "ssh_user" {
 }
 
 variable "ssh_public_key_path" {
-  description = "Path to the SSH public key Terraform adds to each VM."
+  description = "Path to the SSH public key Terraform adds to each VM. A leading ~ uses the current Terraform user's home directory."
   type        = string
+  default     = "~/.ssh/id_rsa.pub"
+
+  validation {
+    condition     = fileexists(pathexpand(var.ssh_public_key_path))
+    error_message = "ssh_public_key_path must point to an existing SSH public key file."
+  }
 }
 
 variable "ssh_source_ranges" {
@@ -184,15 +190,15 @@ variable "kubespray_inventory_path" {
 }
 
 variable "ansible_user" {
-  description = "Ansible SSH user written into the Kubespray inventory."
+  description = "Optional Ansible SSH user written into the Kubespray inventory. Leave empty to reuse ssh_user."
   type        = string
-  default     = "seang"
+  default     = ""
 }
 
 variable "ansible_ssh_private_key_file" {
-  description = "SSH private key path written into the Kubespray inventory."
+  description = "SSH private key path written into the Kubespray inventory. A leading ~ uses the current Terraform user's home directory."
   type        = string
-  default     = "/home/seang/.ssh/id_rsa"
+  default     = "~/.ssh/id_rsa"
 }
 
 variable "ansible_python_interpreter" {

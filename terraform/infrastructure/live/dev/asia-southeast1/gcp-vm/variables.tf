@@ -4,9 +4,9 @@ variable "project_id" {
 }
 
 variable "gcp_adc_file" {
-  description = "Optional path to a Google Application Default Credentials JSON file. Leave empty to use the default ADC location from gcloud auth application-default login."
+  description = "Optional ADC JSON path. Leave empty for automatic per-user ADC discovery, or use ~ for the current user's home directory."
   type        = string
-  default     = "/home/window/.config/gcloud/application_default_credentials.json"
+  default     = ""
   sensitive   = true
 }
 
@@ -153,8 +153,14 @@ variable "ssh_user" {
 }
 
 variable "ssh_public_key_path" {
-  description = "Path to the SSH public key."
+  description = "Path to the SSH public key. A leading ~ uses the current Terraform user's home directory."
   type        = string
+  default     = "~/.ssh/id_rsa.pub"
+
+  validation {
+    condition     = fileexists(pathexpand(var.ssh_public_key_path))
+    error_message = "ssh_public_key_path must point to an existing SSH public key file."
+  }
 }
 
 variable "ssh_source_ranges" {
@@ -163,22 +169,38 @@ variable "ssh_source_ranges" {
   default     = ["0.0.0.0/0"]
 }
 
-variable "sonarqube_port" {
-  description = "SonarQube web port."
-  type        = number
-  default     = 9000
+variable "public_service_ports" {
+  description = "Public TCP ports exposed through the GCP firewall. The Ansible service roles use Nginx on ports 80 and 443."
+  type        = list(number)
+  default     = [80, 443]
+
+  validation {
+    condition     = length(var.public_service_ports) > 0 && alltrue([for port in var.public_service_ports : port >= 1 && port <= 65535 && floor(port) == port])
+    error_message = "public_service_ports must contain valid TCP port numbers from 1 through 65535."
+  }
 }
 
-variable "sonarqube_source_ranges" {
-  description = "CIDR ranges allowed to access SonarQube."
+variable "public_service_source_ranges" {
+  description = "CIDR ranges allowed to access public service ports."
   type        = list(string)
   default     = ["0.0.0.0/0"]
 }
 
-variable "http_https_source_ranges" {
-  description = "CIDR ranges allowed to access HTTP and HTTPS for Nginx/Certbot."
+variable "additional_service_ports" {
+  description = "Optional TCP ports that bypass Nginx, such as Jenkins inbound-agent port 50000."
+  type        = list(number)
+  default     = []
+
+  validation {
+    condition     = alltrue([for port in var.additional_service_ports : port >= 1 && port <= 65535 && floor(port) == port])
+    error_message = "additional_service_ports must contain valid TCP port numbers from 1 through 65535."
+  }
+}
+
+variable "additional_service_source_ranges" {
+  description = "Restricted CIDR ranges allowed to access additional service ports."
   type        = list(string)
-  default     = ["0.0.0.0/0"]
+  default     = []
 }
 
 variable "ansible_inventory_path" {

@@ -1,7 +1,6 @@
 project_id = "project-ef47043f-b178-4cb8-992"
 region     = "asia-southeast1"
 zone       = "asia-southeast1-a"
-
 # Number of VMs to create. Use 2 because DNS records use vm_index = 2.
 instance_count = 2
 
@@ -27,9 +26,12 @@ fallback_regions = [
 blocked_zones   = []
 blocked_regions = []
 
-# ADC file used by the Google provider.
-# If you run Terraform in WSL/Linux, this path is valid if your gcloud ADC file exists there.
-gcp_adc_file = "/home/window/.config/gcloud/application_default_credentials.json"
+# Recommended: empty means Google automatically discovers ADC for whichever
+# user runs Terraform after `gcloud auth application-default login`.
+gcp_adc_file = ""
+
+# Optional explicit Linux/WSL path. "~" dynamically means the current user:
+# gcp_adc_file = "~/.config/gcloud/application_default_credentials.json"
 
 # GCP VM names cannot use underscores. Terraform creates gcp-vm-1, gcp-vm-2, ...
 name = "gcp-vm"
@@ -48,16 +50,24 @@ desired_status = "RUNNING"
 network    = "default"
 subnetwork = null
 
-ssh_user            = "ubuntu"
-ssh_public_key_path = "/home/window/.ssh/id_rsa.pub"
+ssh_user            = "seang"
+ssh_public_key_path = "~/.ssh/id_rsa.pub"
 
 # Terraform writes the VM external IPs into this Ansible inventory after apply.
 ansible_inventory_path       = "../../../../../ansible_service_config/inventories/dev/hosts.ini"
 ansible_inventory_groups     = ["defectdojo", "jenkins", "nexus", "sonarqube", "trivy", "vault"]
-ansible_ssh_private_key_path = "/home/window/.ssh/id_rsa"
+ansible_ssh_private_key_path = "~/.ssh/id_rsa"
 
-# Optional explicit map. Leave empty to derive from Cloudflare records when DNS is enabled.
-ansible_service_targets = {}
+# Explicit service-to-VM map. This keeps inventory correct even while
+# Cloudflare DNS is disabled.
+ansible_service_targets = {
+  defectdojo = { vm_index = 2 }
+  jenkins    = { vm_index = 1 }
+  nexus      = { vm_index = 2 }
+  sonarqube  = { vm_index = 1 }
+  trivy      = { vm_index = 2 }
+  vault      = { vm_index = 2 }
+}
 
 enable_ansible_group_vars_domains = true
 ansible_group_vars_path           = "../../../../../ansible_service_config/group_vars"
@@ -173,8 +183,20 @@ cloudflare_dns_records = {
   }
 }
 
-# For learning, this is open. For real use, restrict to your public IP CIDR.
-ssh_source_ranges       = ["0.0.0.0/0"]
-sonarqube_source_ranges = ["0.0.0.0/0"]
-http_https_source_ranges  = ["0.0.0.0/0"]
-sonarqube_port          = 9000
+# GCP firewall ports used by the Ansible service roles:
+# - 22: SSH for Ansible. Restrict this to your public IP for real use.
+# - 80: Nginx HTTP and Certbot validation.
+# - 443: Nginx HTTPS for every service domain.
+#
+# Backend ports such as SonarQube 9000, Jenkins 8080, Nexus 8081/8082,
+# Trivy 4954, and Vault 8200 stay behind Nginx and are not opened by GCP.
+ssh_source_ranges            = ["0.0.0.0/0"]
+public_service_ports         = [80, 443]
+public_service_source_ranges = ["0.0.0.0/0"]
+
+# Add only ports that truly need direct remote access.
+# Example for Jenkins inbound agents:
+# additional_service_ports         = [50000]
+# additional_service_source_ranges = ["YOUR_JENKINS_AGENT_IP/32"]
+additional_service_ports         = []
+additional_service_source_ranges = []

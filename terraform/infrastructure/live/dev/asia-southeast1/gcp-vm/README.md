@@ -127,7 +127,25 @@ gcloud config set project YOUR_GCP_PROJECT_ID
 
 By default, Terraform can automatically use the ADC file created by `gcloud`.
 
-On Windows, the default ADC file is usually:
+Recommended portable configuration:
+
+```hcl
+gcp_adc_file = ""
+```
+
+With the empty value, the Google provider automatically selects the ADC
+credentials belonging to whichever Linux, WSL, Windows, or CI user runs
+Terraform. You do not need to write `/home/seang`, `/home/ubuntu`, or another
+username in Terraform.
+
+If you deliberately want to select the standard Linux/WSL ADC file explicitly,
+use `~`; Terraform expands it to the current user's home directory:
+
+```hcl
+gcp_adc_file = "~/.config/gcloud/application_default_credentials.json"
+```
+
+On Windows, the default ADC file is usually similar to:
 
 ```text
 C:/Users/M/AppData/Roaming/gcloud/application_default_credentials.json
@@ -139,16 +157,11 @@ If you want to explicitly configure the ADC file, set this in `terraform.tfvars`
 gcp_adc_file = "C:/Users/M/AppData/Roaming/gcloud/application_default_credentials.json"
 ```
 
-If you leave it empty, Terraform uses the normal ADC discovery:
-
-```hcl
-gcp_adc_file = ""
-```
-
 For HTTPS with Certbot, the VM must allow public HTTP and HTTPS traffic:
 
 ```hcl
-http_https_source_ranges = ["0.0.0.0/0"]
+public_service_ports         = [80, 443]
+public_service_source_ranges = ["0.0.0.0/0"]
 ```
 
 Your DNS records, for example `sonarqube.your-domain.com`, must point to the VM external IP before Ansible runs Certbot.

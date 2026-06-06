@@ -139,8 +139,14 @@ variable "ssh_user" {
 }
 
 variable "ssh_public_key_path" {
-  description = "Path to the SSH public key for VM access."
+  description = "Path to the SSH public key for VM access. A leading ~ uses the current Terraform user's home directory."
   type        = string
+  default     = "~/.ssh/id_rsa.pub"
+
+  validation {
+    condition     = fileexists(pathexpand(var.ssh_public_key_path))
+    error_message = "ssh_public_key_path must point to an existing SSH public key file."
+  }
 }
 
 variable "ssh_source_ranges" {
@@ -149,22 +155,38 @@ variable "ssh_source_ranges" {
   default     = ["0.0.0.0/0"]
 }
 
-variable "sonarqube_port" {
-  description = "SonarQube web port to allow."
-  type        = number
-  default     = 9000
+variable "public_service_ports" {
+  description = "Public TCP ports exposed through the GCP firewall. The Ansible roles use Nginx on ports 80 and 443."
+  type        = list(number)
+  default     = [80, 443]
+
+  validation {
+    condition     = length(var.public_service_ports) > 0 && alltrue([for port in var.public_service_ports : port >= 1 && port <= 65535 && floor(port) == port])
+    error_message = "public_service_ports must contain valid TCP port numbers from 1 through 65535."
+  }
 }
 
-variable "sonarqube_source_ranges" {
-  description = "CIDR ranges allowed to access SonarQube."
+variable "public_service_source_ranges" {
+  description = "CIDR ranges allowed to access public service ports such as HTTP and HTTPS."
   type        = list(string)
   default     = ["0.0.0.0/0"]
 }
 
-variable "http_https_source_ranges" {
-  description = "CIDR ranges allowed to access HTTP and HTTPS for Nginx/Certbot."
+variable "additional_service_ports" {
+  description = "Optional TCP ports that must bypass Nginx, such as Jenkins inbound-agent port 50000. Backend localhost ports should not be added."
+  type        = list(number)
+  default     = []
+
+  validation {
+    condition     = alltrue([for port in var.additional_service_ports : port >= 1 && port <= 65535 && floor(port) == port])
+    error_message = "additional_service_ports must contain valid TCP port numbers from 1 through 65535."
+  }
+}
+
+variable "additional_service_source_ranges" {
+  description = "Restricted CIDR ranges allowed to access additional service ports."
   type        = list(string)
-  default     = ["0.0.0.0/0"]
+  default     = []
 }
 
 variable "labels" {

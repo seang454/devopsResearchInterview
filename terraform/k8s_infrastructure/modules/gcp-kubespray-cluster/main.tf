@@ -131,7 +131,7 @@ resource "google_compute_instance" "this" {
   }
 
   metadata = {
-    ssh-keys = "${var.ssh_user}:${file(var.ssh_public_key_path)}"
+    ssh-keys = "${var.ssh_user}:${file(pathexpand(var.ssh_public_key_path))}"
   }
 
   labels = merge(var.labels, {

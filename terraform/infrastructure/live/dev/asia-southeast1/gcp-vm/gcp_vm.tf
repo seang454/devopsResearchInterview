@@ -39,14 +39,15 @@ module "gcp_vm" {
   ssh_user               = var.ssh_user
   ssh_public_key_path    = var.ssh_public_key_path
 
-  ssh_source_ranges        = var.ssh_source_ranges
-  sonarqube_port           = var.sonarqube_port
-  sonarqube_source_ranges  = var.sonarqube_source_ranges
-  http_https_source_ranges = var.http_https_source_ranges
+  ssh_source_ranges                = var.ssh_source_ranges
+  public_service_ports             = var.public_service_ports
+  public_service_source_ranges     = var.public_service_source_ranges
+  additional_service_ports         = var.additional_service_ports
+  additional_service_source_ranges = var.additional_service_source_ranges
 
   labels = {
     environment = "dev"
-    app         = "sonarqube"
+    app         = "service-platform"
     managed_by  = "terraform"
   }
 }

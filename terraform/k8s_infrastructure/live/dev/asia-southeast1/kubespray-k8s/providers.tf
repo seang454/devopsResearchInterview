@@ -17,5 +17,8 @@ terraform {
 provider "google" {
   project     = var.project_id
   region      = var.region
-  credentials = var.gcp_adc_file != "" ? file(var.gcp_adc_file) : null
+
+  # Empty uses automatic ADC discovery for whichever user runs Terraform.
+  # pathexpand lets an optional "~/.config/..." path use the current user.
+  credentials = trimspace(var.gcp_adc_file) != "" ? file(pathexpand(trimspace(var.gcp_adc_file))) : null
 }

@@ -166,8 +166,14 @@ variable "ssh_user" {
 }
 
 variable "ssh_public_key_path" {
-  description = "Path to the SSH public key."
+  description = "Path to the SSH public key. A leading ~ uses the current Terraform user's home directory."
   type        = string
+  default     = "~/.ssh/id_rsa.pub"
+
+  validation {
+    condition     = fileexists(pathexpand(var.ssh_public_key_path))
+    error_message = "ssh_public_key_path must point to an existing SSH public key file."
+  }
 }
 
 variable "ssh_source_ranges" {

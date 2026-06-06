@@ -1,7 +1,8 @@
 ---
 sonarqube_version: "25.2.0.102705"
 sonarqube_install_dir: /opt/sonarqube
-sonarqube_web_host: "0.0.0.0"
+# Nginx is the public entry point, so SonarQube listens only on this VM.
+sonarqube_web_host: "127.0.0.1"
 sonarqube_web_port: 9000
 sonarqube_user: sonarqube
 sonarqube_group: sonarqube

@@ -31,9 +31,12 @@ fallback_regions = [
 blocked_zones   = []
 blocked_regions = []
 
-# ADC file used by the Google provider.
-# Leave empty to use normal gcloud ADC discovery.
-gcp_adc_file = "/home/window/.config/gcloud/application_default_credentials.json"
+# Recommended: empty means Google automatically discovers ADC for whichever
+# user runs Terraform after `gcloud auth application-default login`.
+gcp_adc_file = ""
+
+# Optional explicit Linux/WSL path. "~" dynamically means the current user:
+# gcp_adc_file = "~/.config/gcloud/application_default_credentials.json"
 
 # Machine types are matched by node index.
 # If there are more nodes than values, Terraform reuses the last value.
@@ -57,11 +60,12 @@ subnetwork = null
 
 # SSH key Terraform puts on the VM metadata.
 ssh_user            = "seang"
-ssh_public_key_path = "/home/seang/.ssh/id_rsa.pub"
+ssh_public_key_path = "~/.ssh/id_rsa.pub"
 
 # SSH/private key values written into the Kubespray inventory.
-ansible_user                 = "seang"
-ansible_ssh_private_key_file = "/home/seang/.ssh/id_rsa"
+# Leave ansible_user empty to reuse ssh_user above.
+ansible_user                 = ""
+ansible_ssh_private_key_file = "~/.ssh/id_rsa"
 ansible_python_interpreter   = "/usr/bin/python3"
 ansible_ssh_extra_args       = "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 

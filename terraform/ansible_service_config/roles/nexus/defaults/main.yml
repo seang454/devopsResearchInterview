@@ -17,6 +17,9 @@ nexus_image: sonatype/nexus3:latest
 nexus_port: 8081
 nexus_docker_port: 8082
 
+# Nginx proxies both endpoints, so Docker publishes them only on this VM.
+nexus_bind_address: "127.0.0.1"
+
 nexus_docker_blob: docker-hosted
 nexus_helm_blob: helm-hosted
 nexus_docker_repo_name: docker-hosted

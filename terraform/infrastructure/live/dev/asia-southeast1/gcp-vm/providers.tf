@@ -51,9 +51,12 @@ provider "google" {
   # Default GCP region for regional resources.
   region = var.region
 
-  # If gcp_adc_file is set, load credentials from that ADC JSON file.
-  # If gcp_adc_file is empty, use Google's default ADC discovery.
-  credentials = var.gcp_adc_file != "" ? file(var.gcp_adc_file) : null
+  # Recommended: leave gcp_adc_file empty so Google's ADC discovery selects
+  # the credentials of whichever user runs Terraform.
+  #
+  # Optional: a path beginning with "~" is expanded to that user's home
+  # directory, for example ~/.config/gcloud/application_default_credentials.json.
+  credentials = trimspace(var.gcp_adc_file) != "" ? file(pathexpand(trimspace(var.gcp_adc_file))) : null
 }
 
 # Configure the Cloudflare provider.

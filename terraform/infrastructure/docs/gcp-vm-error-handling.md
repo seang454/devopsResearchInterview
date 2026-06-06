@@ -29,7 +29,7 @@ Terraform cannot:
 | Remap bad zones | Add bad zones/regions to `terraform.tfvars`, then rerun `terraform apply` |
 | Reserve static IP | `google_compute_address.this` |
 | Create VM with static IP | `google_compute_instance.this` uses the reserved IP |
-| Merge final results | Terraform outputs `instances`, `machine_plan`, `server_ips`, and `sonarqube_urls` |
+| Merge final results | Terraform outputs `instances`, `machine_plan`, `server_ips`, and `https_urls` |
 
 ## Normal Apply
 

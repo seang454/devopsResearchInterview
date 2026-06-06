@@ -1,12 +1,12 @@
 locals {
   ansible_inventory_all_hosts = [
     for index, name in module.gcp_vm.instance_names :
-    "${name} ansible_host=${module.gcp_vm.server_ips[index]} ansible_user=${module.gcp_vm.ssh_user} ansible_ssh_private_key_file=${var.ansible_ssh_private_key_path}"
+    "${name} ansible_host=${module.gcp_vm.server_ips[index]} ansible_user=${module.gcp_vm.ssh_user} ansible_ssh_private_key_file=${pathexpand(var.ansible_ssh_private_key_path)}"
   ]
 
   ansible_inventory_hosts_by_index = {
     for index, name in module.gcp_vm.instance_names :
-    index + 1 => "${name} ansible_host=${module.gcp_vm.server_ips[index]} ansible_user=${module.gcp_vm.ssh_user} ansible_ssh_private_key_file=${var.ansible_ssh_private_key_path}"
+    index + 1 => "${name} ansible_host=${module.gcp_vm.server_ips[index]} ansible_user=${module.gcp_vm.ssh_user} ansible_ssh_private_key_file=${pathexpand(var.ansible_ssh_private_key_path)}"
   }
 
   # Dynamic path:

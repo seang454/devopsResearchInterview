@@ -142,7 +142,7 @@
       - "{{ jenkins_certs_volume }}:/certs/client"
       - "{{ jenkins_data_volume }}:/var/jenkins_home"
     ports:
-      - "{{ jenkins_dind_port }}:2376"
+      - "{{ jenkins_dind_bind_address }}:{{ jenkins_dind_port }}:2376"
     command: "--storage-driver overlay2"
   become: true
 
@@ -163,6 +163,6 @@
       - "{{ jenkins_data_volume }}:/var/jenkins_home"
       - "{{ jenkins_certs_volume }}:/certs/client:ro"
     ports:
-      - "{{ jenkins_http_port }}:8080"
-      - "{{ jenkins_agent_port }}:50000"
+      - "{{ jenkins_http_bind_address }}:{{ jenkins_http_port }}:8080"
+      - "{{ jenkins_agent_bind_address }}:{{ jenkins_agent_port }}:50000"
   become: true

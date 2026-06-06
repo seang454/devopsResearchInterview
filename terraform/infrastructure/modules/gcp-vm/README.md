@@ -1,17 +1,37 @@
 # GCP VM Module
 
-This module creates one or more Google Compute Engine VMs for SonarQube and opens firewall access for:
+This module creates one or more Google Compute Engine VMs for the Ansible-managed service platform and opens firewall access for:
 
 - SSH port `22`
-- SonarQube web port `9000`
-- HTTP port `80` and HTTPS port `443` for Nginx and Certbot
+- Public service ports `80` and `443` for Nginx and Certbot
+- Optional additional ports only when explicitly configured
 
 Terraform creates the VM. Ansible configures the software on the VM.
 
-For HTTPS with Certbot, keep `http_https_source_ranges` open to the public internet unless you use a different certificate validation method:
+All current service roles expose their web interface through Nginx:
+
+```text
+Internet -> GCP firewall 80/443 -> Nginx -> localhost service port
+```
+
+The backend ports do not need GCP firewall rules:
+
+| Role | Backend port | Public access |
+|---|---:|---|
+| SonarQube | `9000` | Through Nginx `443` |
+| Jenkins | `8080` | Through Nginx `443` |
+| Nexus UI | `8081` | Through Nginx `443` |
+| Nexus Docker | `8082` | Through Nginx `443` |
+| Trivy server | `4954` | Through Nginx `443` |
+| Vault API | `8200` | Through Nginx `443` |
 
 ```hcl
-http_https_source_ranges = ["0.0.0.0/0"]
+public_service_ports         = [80, 443]
+public_service_source_ranges = ["0.0.0.0/0"]
+
+# Optional example for Jenkins inbound agents. Restrict the source CIDR.
+additional_service_ports         = [50000]
+additional_service_source_ranges = ["203.0.113.10/32"]
 ```
 
 ## Dynamic VM Count
@@ -148,7 +168,8 @@ candidate_zones
 server_ips
 static_ips
 instances
-sonarqube_urls
+http_urls
+https_urls
 ```
 
 Use the IP addresses in Ansible inventory:

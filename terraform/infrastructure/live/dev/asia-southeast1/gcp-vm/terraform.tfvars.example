@@ -33,6 +33,9 @@ blocked_regions = []
 gcp_adc_file = ""
 
 # Option 2: explicitly point Terraform to an ADC JSON file.
+# Linux/WSL: "~" dynamically means the current user's home directory.
+# gcp_adc_file = "~/.config/gcloud/application_default_credentials.json"
+#
 # Windows default ADC path example:
 # gcp_adc_file = "C:/Users/M/AppData/Roaming/gcloud/application_default_credentials.json"
 
@@ -54,7 +57,7 @@ network    = "default"
 subnetwork = null
 
 ssh_user            = "ubuntu"
-ssh_public_key_path = "C:/Users/M/.ssh/id_rsa.pub"
+ssh_public_key_path = "~/.ssh/id_rsa.pub"
 
 # Terraform writes the VM external IPs into this Ansible inventory after apply.
 ansible_inventory_path       = "../../../../../ansible_service_config/inventories/dev/hosts.ini"
@@ -196,8 +199,20 @@ cloudflare_dns_records = {
   # }
 }
 
-# For learning, this is open. For real use, restrict to your public IP CIDR.
-ssh_source_ranges       = ["0.0.0.0/0"]
-sonarqube_source_ranges = ["0.0.0.0/0"]
-http_https_source_ranges  = ["0.0.0.0/0"]
-sonarqube_port          = 9000
+# GCP firewall ports used by the Ansible service roles:
+# - 22: SSH for Ansible. Restrict this to your public IP for real use.
+# - 80: Nginx HTTP and Certbot validation.
+# - 443: Nginx HTTPS for every service domain.
+#
+# Backend ports such as SonarQube 9000, Jenkins 8080, Nexus 8081/8082,
+# Trivy 4954, and Vault 8200 stay behind Nginx and are not opened by GCP.
+ssh_source_ranges            = ["0.0.0.0/0"]
+public_service_ports         = [80, 443]
+public_service_source_ranges = ["0.0.0.0/0"]
+
+# Add only ports that truly need direct remote access.
+# Example for Jenkins inbound agents:
+# additional_service_ports         = [50000]
+# additional_service_source_ranges = ["YOUR_JENKINS_AGENT_IP/32"]
+additional_service_ports         = []
+additional_service_source_ranges = []

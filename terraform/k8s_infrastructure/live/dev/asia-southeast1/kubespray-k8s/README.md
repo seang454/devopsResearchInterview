@@ -64,6 +64,28 @@ kube_node
 
 ## Run Terraform
 
+First create Application Default Credentials for the user running Terraform:
+
+```bash
+gcloud auth application-default login
+```
+
+Keep the portable default in `terraform.tfvars`:
+
+```hcl
+gcp_adc_file = ""
+```
+
+An empty value tells the Google provider to automatically discover that user's
+ADC credentials. To explicitly select the standard Linux/WSL file without
+hardcoding a username, use:
+
+```hcl
+gcp_adc_file = "~/.config/gcloud/application_default_credentials.json"
+```
+
+Terraform expands `~` to the current user's home directory.
+
 ```bash
 cd terraform/k8s_infrastructure/live/dev/asia-southeast1/kubespray-k8s
 terraform init
@@ -90,10 +112,11 @@ control_plane_count = 3
 worker_count        = 3
 
 ssh_user            = "seang"
-ssh_public_key_path = "/home/seang/.ssh/id_rsa.pub"
+ssh_public_key_path = "~/.ssh/id_rsa.pub"
 
-ansible_user                 = "seang"
-ansible_ssh_private_key_file = "/home/seang/.ssh/id_rsa"
+# Empty means reuse ssh_user.
+ansible_user                 = ""
+ansible_ssh_private_key_file = "~/.ssh/id_rsa"
 
 kubespray_inventory_path = "../../../../../ansible_kubespray_k8s/kubespray/inventory/sample/inventory.ini"
 ```

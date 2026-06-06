@@ -48,14 +48,24 @@ output "ssh_user" {
   value       = module.gcp_vm.ssh_user
 }
 
-output "sonarqube_url" {
-  description = "Expected first SonarQube URL after Ansible configures the VM."
-  value       = module.gcp_vm.sonarqube_url
+output "http_url" {
+  description = "First VM public HTTP URL."
+  value       = module.gcp_vm.http_url
 }
 
-output "sonarqube_urls" {
-  description = "Expected SonarQube URLs after Ansible configures the VMs."
-  value       = module.gcp_vm.sonarqube_urls
+output "http_urls" {
+  description = "Public HTTP URLs for all VMs."
+  value       = module.gcp_vm.http_urls
+}
+
+output "https_url" {
+  description = "First VM public HTTPS URL. Use a configured service domain for valid TLS."
+  value       = module.gcp_vm.https_url
+}
+
+output "https_urls" {
+  description = "Public HTTPS URLs for all VMs. Use configured service domains for valid TLS."
+  value       = module.gcp_vm.https_urls
 }
 
 output "instances" {

@@ -18,3 +18,10 @@ jenkins_certs_volume: jenkins-docker-certs
 jenkins_http_port: 8080
 jenkins_agent_port: 50000
 jenkins_dind_port: 2376
+
+# Bind Docker-published ports locally because Nginx is the public entry point.
+# To use remote inbound agents, set jenkins_agent_bind_address to "0.0.0.0"
+# and allow port 50000 from only the agent CIDRs in Terraform.
+jenkins_http_bind_address: "127.0.0.1"
+jenkins_agent_bind_address: "127.0.0.1"
+jenkins_dind_bind_address: "127.0.0.1"

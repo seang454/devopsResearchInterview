@@ -53,14 +53,24 @@ output "ssh_user" {
   value       = var.ssh_user
 }
 
-output "sonarqube_url" {
-  description = "Expected first SonarQube URL after Ansible configures the server."
-  value       = "http://${google_compute_address.this[0].address}:${var.sonarqube_port}"
+output "http_url" {
+  description = "First VM public HTTP URL. Nginx routes requests by hostname after Ansible configures the services."
+  value       = "http://${google_compute_address.this[0].address}"
 }
 
-output "sonarqube_urls" {
-  description = "Expected SonarQube URLs after Ansible configures the servers."
-  value       = [for address in google_compute_address.this : "http://${address.address}:${var.sonarqube_port}"]
+output "http_urls" {
+  description = "Public HTTP URLs for all VMs."
+  value       = [for address in google_compute_address.this : "http://${address.address}"]
+}
+
+output "https_url" {
+  description = "First VM public HTTPS URL. Use a configured service domain for valid TLS."
+  value       = "https://${google_compute_address.this[0].address}"
+}
+
+output "https_urls" {
+  description = "Public HTTPS URLs for all VMs. Use configured service domains for valid TLS."
+  value       = [for address in google_compute_address.this : "https://${address.address}"]
 }
 
 output "instances" {
@@ -71,7 +81,8 @@ output "instances" {
       machine_type  = instance.machine_type
       static_ip     = google_compute_address.this[index].address
       public_ip     = google_compute_address.this[index].address
-      sonarqube_url = "http://${google_compute_address.this[index].address}:${var.sonarqube_port}"
+      http_url      = "http://${google_compute_address.this[index].address}"
+      https_url     = "https://${google_compute_address.this[index].address}"
     }
   }
 }

@@ -1,5 +1,5 @@
 locals {
-  network_tag = "${var.name}-sonarqube"
+  network_tag = "${var.name}-services"
 
   # If zones is empty, use the single fallback zone.
   # If zones has values, Terraform will spread VMs across that zone list.
@@ -75,6 +75,11 @@ resource "terraform_data" "preflight" {
       condition     = length(local.usable_zones) > 0
       error_message = "No usable GCP zones remain. Remove values from blocked_zones/blocked_regions or add more zones."
     }
+
+    precondition {
+      condition     = length(var.additional_service_ports) == 0 || length(var.additional_service_source_ranges) > 0
+      error_message = "Set additional_service_source_ranges when additional_service_ports contains ports."
+    }
   }
 }
 
@@ -142,7 +147,7 @@ resource "google_compute_instance" "this" {
   }
 
   metadata = {
-    ssh-keys = "${var.ssh_user}:${file(var.ssh_public_key_path)}"
+    ssh-keys = "${var.ssh_user}:${file(pathexpand(var.ssh_public_key_path))}"
   }
 
   labels = var.labels
@@ -161,28 +166,35 @@ resource "google_compute_firewall" "ssh" {
   target_tags   = [local.network_tag]
 }
 
-resource "google_compute_firewall" "sonarqube" {
-  name    = "${var.name}-allow-sonarqube"
+# Optional direct-access ports that cannot use the Nginx HTTP/HTTPS path.
+# Keep source ranges restricted because this rule targets every service VM.
+resource "google_compute_firewall" "additional_services" {
+  count = length(var.additional_service_ports) > 0 ? 1 : 0
+
+  name    = "${var.name}-allow-additional-services"
   network = var.network
 
   allow {
     protocol = "tcp"
-    ports    = [tostring(var.sonarqube_port)]
+    ports    = [for port in var.additional_service_ports : tostring(port)]
   }
 
-  source_ranges = var.sonarqube_source_ranges
+  source_ranges = var.additional_service_source_ranges
   target_tags   = [local.network_tag]
 }
 
-resource "google_compute_firewall" "http_https" {
-  name    = "${var.name}-allow-http-https"
+# Every current Ansible service role publishes its user-facing endpoint through
+# Nginx. GCP only needs to admit HTTP/HTTPS; localhost backend traffic never
+# crosses the GCP firewall.
+resource "google_compute_firewall" "public_services" {
+  name    = "${var.name}-allow-public-services"
   network = var.network
 
   allow {
     protocol = "tcp"
-    ports    = ["80", "443"]
+    ports    = [for port in var.public_service_ports : tostring(port)]
   }
 
-  source_ranges = var.http_https_source_ranges
+  source_ranges = var.public_service_source_ranges
   target_tags   = [local.network_tag]
 }

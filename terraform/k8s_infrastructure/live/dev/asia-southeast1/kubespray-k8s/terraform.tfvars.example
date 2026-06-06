@@ -35,7 +35,8 @@ blocked_regions = []
 gcp_adc_file = ""
 
 # Option 2: explicitly point Terraform to an ADC JSON file.
-# gcp_adc_file = "/home/window/.config/gcloud/application_default_credentials.json"
+# Linux/WSL: "~" dynamically means the current user's home directory.
+# gcp_adc_file = "~/.config/gcloud/application_default_credentials.json"
 
 control_plane_machine_types = [
   "e2-standard-2"
@@ -56,10 +57,11 @@ network    = "default"
 subnetwork = null
 
 ssh_user            = "seang"
-ssh_public_key_path = "/home/seang/.ssh/id_rsa.pub"
+ssh_public_key_path = "~/.ssh/id_rsa.pub"
 
-ansible_user                 = "seang"
-ansible_ssh_private_key_file = "/home/seang/.ssh/id_rsa"
+# Leave empty to reuse ssh_user above.
+ansible_user                 = ""
+ansible_ssh_private_key_file = "~/.ssh/id_rsa"
 ansible_python_interpreter   = "/usr/bin/python3"
 ansible_ssh_extra_args       = "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
