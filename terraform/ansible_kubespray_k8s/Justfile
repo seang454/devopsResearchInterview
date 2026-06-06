@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# -------------------------------------------------------
+# Setup full infrastructure + deploy Kubernetes cluster
+# Ansible handles provisioning, then Justfile runs
+# Kubespray directly for live terminal output
+# -------------------------------------------------------
+setup-iac:
+    echo "=========================================="
+    echo "  Step 1: Provisioning infrastructure..."
+    echo "=========================================="
+    ANSIBLE_LOCAL_TEMP=/tmp TMPDIR=/tmp ansible-playbook -i inventory.ini playbook/main-iac.yaml --ask-become-pass
+
+    echo ""
+    echo "=========================================="
+    echo "  Step 2: Deploying Kubernetes cluster..."
+    echo "  (live output streams below)"
+    echo "=========================================="
+    /tmp/run-kubespray.sh
+
+# -------------------------------------------------------
+# Reset Kubernetes cluster on existing infrastructure
+# -------------------------------------------------------
+reset-cluster:
+    echo "Resetting Kubernetes cluster state..."
+    cd kubespray && \
+      ANSIBLE_LOCAL_TEMP=/tmp TMPDIR=/tmp /home/seang/kubespray-venv/bin/ansible-playbook -b -f 20 \
+        -i inventory/sample/inventory.ini \
+        reset.yml \
+        --skip-tags always,bootstrap_os \
+        -e skip_downloads=true \
+        -e reset_confirmation=yes
+
+# -------------------------------------------------------
+# Teardown all infrastructure
+# -------------------------------------------------------
+destroy-iac:
+    echo "Destroying infrastructure...!"
+    ANSIBLE_LOCAL_TEMP=/tmp TMPDIR=/tmp ansible-playbook -i inventory.ini playbook/main-destroy.yaml --ask-become-pass

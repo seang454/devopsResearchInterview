@@ -1,0 +1,79 @@
+project_id = "project-ef47043f-b178-4cb8-992"
+region     = "asia-southeast1"
+zone       = "asia-southeast1-a"
+
+# Kubespray cluster size.
+# For stacked etcd HA, 1 or 3 control plane nodes is usually better than 2.
+control_plane_count = 3
+worker_count        = 3
+
+cluster_name         = "kubespray"
+instance_name_prefix = "k8s"
+
+# Kubespray inventory names become master01, master02, worker01, worker02, ...
+control_plane_name_prefix = "master"
+worker_name_prefix        = "worker"
+
+# Terraform spreads nodes across these zones in order.
+zones = [
+  "asia-southeast1-a",
+  "asia-southeast1-b",
+  "asia-southeast1-c"
+]
+
+auto_discover_up_zones = true
+
+fallback_regions = [
+  "asia-east1",
+  "asia-northeast1"
+]
+
+blocked_zones   = []
+blocked_regions = []
+
+# ADC file used by the Google provider.
+# Leave empty to use normal gcloud ADC discovery.
+gcp_adc_file = "/home/window/.config/gcloud/application_default_credentials.json"
+
+# Machine types are matched by node index.
+# If there are more nodes than values, Terraform reuses the last value.
+control_plane_machine_types = [
+  "e2-standard-2"
+]
+
+worker_machine_types = [
+  "e2-standard-2"
+]
+
+desired_status = "RUNNING"
+
+image                           = "ubuntu-os-cloud/ubuntu-2404-lts-amd64"
+control_plane_boot_disk_size_gb = 50
+worker_boot_disk_size_gb        = 50
+boot_disk_type                  = "pd-balanced"
+
+network    = "default"
+subnetwork = null
+
+# SSH key Terraform puts on the VM metadata.
+ssh_user            = "seang"
+ssh_public_key_path = "/home/seang/.ssh/id_rsa.pub"
+
+# SSH/private key values written into the Kubespray inventory.
+ansible_user                 = "seang"
+ansible_ssh_private_key_file = "/home/seang/.ssh/id_rsa"
+ansible_python_interpreter   = "/usr/bin/python3"
+ansible_ssh_extra_args       = "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+
+# Terraform writes the real VM IPs into this Kubespray inventory after apply.
+kubespray_inventory_path = "../../../../../ansible_kubespray_k8s/kubespray/inventory/sample/inventory.ini"
+
+# For learning, this is open. For real use, restrict SSH/API to your public IP CIDR.
+ssh_source_ranges            = ["0.0.0.0/0"]
+kubernetes_api_source_ranges = ["0.0.0.0/0"]
+
+# Internal node-to-node communication. Adjust this to your VPC/subnet CIDR in production.
+internal_source_ranges = ["10.0.0.0/8"]
+
+# Leave empty unless you intentionally expose Kubernetes NodePorts publicly.
+nodeport_source_ranges = []

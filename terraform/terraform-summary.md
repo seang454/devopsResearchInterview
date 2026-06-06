@@ -77,3 +77,12 @@ HCP Terraform can also connect to version control systems such as GitHub and Git
 ## Short Summary
 
 Terraform is an Infrastructure as Code tool that helps teams define, deploy, and manage infrastructure using configuration files. It supports many cloud platforms, uses reusable modules, tracks infrastructure with state, and enables safer collaboration through version control and remote state.
+
+## terraform-installation
+[Terraform Installation](./terraform-installation.md)
+## terraformCLI-Command
+[terraformCLI-Command](./terraformCLI-command.md)
+## terraform-reference-architecture
+[terraform-reference-architecture](./terraform-reference-architecture.md)
+## module-vs-live-files
+[module-vs-live-files](./module-vs-live-files.md)

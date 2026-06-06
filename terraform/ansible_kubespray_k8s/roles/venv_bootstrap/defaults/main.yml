@@ -1,0 +1,6 @@
+gcp_user: seang
+gcp_venv: /opt/gcp-venv
+kubespray_venv: "/home/{{ gcp_user }}/kubespray-venv"
+kubespray_requirements: "/home/{{ gcp_user }}/final-project/iac/kubespray/requirements.txt"
+ansible_collections_path: "/home/{{ gcp_user }}/.ansible/collections"
+gcp_credentials: "/home/{{ gcp_user }}/.config/gcloud/application_default_credentials.json"

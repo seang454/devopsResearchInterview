@@ -1,0 +1,168 @@
+---
+# ============================================================
+# Role: jenkins
+# Purpose: Configure Nginx/Certbot for Jenkins, build the custom Jenkins image,
+#          and run it with DinD. Shared tooling is installed by venv_bootstrap.
+# ============================================================
+
+- name: Validate Jenkins HTTPS settings
+  ansible.builtin.assert:
+    that:
+      - jenkins_domain is defined
+      - jenkins_domain != "jenkins.example.com"
+      - certbot_email is defined
+      - certbot_email != "admin@example.com"
+    fail_msg: "Set jenkins_domain and certbot_email before enabling Jenkins HTTPS."
+  when: jenkins_enable_https | bool
+
+- name: Ensure Nginx is started and enabled
+  ansible.builtin.systemd:
+    name: nginx
+    state: started
+    enabled: true
+  become: true
+
+# ---- Jenkins Nginx Virtual Host ----
+- name: Deploy Nginx config for Jenkins (HTTP, pre-certbot)
+  ansible.builtin.template:
+    src: jenkins_nginx.conf.j2
+    dest: "/etc/nginx/sites-available/jenkins"
+    mode: "0644"
+  become: true
+  notify: Reload Nginx
+
+- name: Enable Jenkins Nginx site
+  ansible.builtin.file:
+    src: "/etc/nginx/sites-available/jenkins"
+    dest: "/etc/nginx/sites-enabled/jenkins"
+    state: link
+  become: true
+  notify: Reload Nginx
+
+- name: Remove default Nginx site
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  become: true
+  notify: Reload Nginx
+
+- name: Check if SSL certificate already exists for Jenkins
+  ansible.builtin.stat:
+    path: "/etc/letsencrypt/live/{{ jenkins_domain }}/fullchain.pem"
+  register: cert_status
+  when: jenkins_enable_https | bool
+
+# ---- Certbot SSL for Jenkins ----
+- name: Obtain Let's Encrypt certificate for Jenkins
+  ansible.builtin.command:
+    cmd: >
+      certbot --nginx
+      -d {{ jenkins_domain }}
+      --non-interactive
+      --agree-tos
+      --email {{ certbot_email }}
+      {{ '--redirect' if certbot_redirect_http_to_https else '' }}
+      {{ '--staging' if certbot_staging else '' }}
+  become: true
+  register: certbot_result
+  changed_when: "'Certificate not yet due for renewal' not in certbot_result.stdout"
+  failed_when:
+    - certbot_result.rc != 0
+    - "'Certificate not yet due for renewal' not in certbot_result.stdout"
+  when:
+    - jenkins_enable_https | bool
+    - not (cert_status.stat.exists | default(false))
+
+- name: Ensure Certbot auto-renewal timer is enabled
+  ansible.builtin.systemd:
+    name: certbot.timer
+    enabled: true
+    state: started
+  become: true
+  when: jenkins_enable_https | bool
+
+- name: Verify Jenkins certificate renewal works
+  ansible.builtin.command: certbot renew --dry-run
+  become: true
+  register: jenkins_certbot_dry_run
+  changed_when: false
+  failed_when: jenkins_certbot_dry_run.rc != 0
+  when:
+    - jenkins_enable_https | bool
+    - jenkins_certbot_verify_renewal | bool
+
+# ---- Docker network for Jenkins ----
+- name: Create Jenkins Docker network
+  community.docker.docker_network:
+    name: "{{ jenkins_network }}"
+    state: present
+  become: true
+
+# ---- Jenkins Dockerfile ----
+- name: Create Jenkins build directory
+  ansible.builtin.file:
+    path: /opt/jenkins-docker
+    state: directory
+    mode: "0755"
+  become: true
+
+- name: Deploy Jenkins Dockerfile
+  ansible.builtin.template:
+    src: Dockerfile.j2
+    dest: /opt/jenkins-docker/Dockerfile
+    mode: "0644"
+  become: true
+
+- name: Build custom Jenkins image
+  community.docker.docker_image:
+    name: "{{ jenkins_image_name }}"
+    tag: "{{ jenkins_image_version }}"
+    build:
+      path: /opt/jenkins-docker
+      pull: true
+    source: build
+    force_source: false
+  become: true
+
+# ---- Docker-in-Docker (DinD) container ----
+- name: Run Jenkins Docker-in-Docker (DinD) container
+  community.docker.docker_container:
+    name: jenkins-docker
+    image: docker:dind
+    state: started
+    restart_policy: unless-stopped
+    privileged: true
+    networks:
+      - name: "{{ jenkins_network }}"
+        aliases:
+          - docker
+    env:
+      DOCKER_TLS_CERTDIR: /certs
+    volumes:
+      - "{{ jenkins_certs_volume }}:/certs/client"
+      - "{{ jenkins_data_volume }}:/var/jenkins_home"
+    ports:
+      - "{{ jenkins_dind_port }}:2376"
+    command: "--storage-driver overlay2"
+  become: true
+
+# ---- Jenkins container ----
+- name: Run Jenkins BlueOcean container
+  community.docker.docker_container:
+    name: "{{ jenkins_container_name }}"
+    image: "{{ jenkins_image_name }}:{{ jenkins_image_version }}"
+    state: started
+    restart_policy: on-failure
+    networks:
+      - name: "{{ jenkins_network }}"
+    env:
+      DOCKER_HOST: "tcp://docker:2376"
+      DOCKER_CERT_PATH: /certs/client
+      DOCKER_TLS_VERIFY: "1"
+    volumes:
+      - "{{ jenkins_data_volume }}:/var/jenkins_home"
+      - "{{ jenkins_certs_volume }}:/certs/client:ro"
+    ports:
+      - "{{ jenkins_http_port }}:8080"
+      - "{{ jenkins_agent_port }}:50000"
+  become: true

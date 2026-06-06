@@ -105,3 +105,4 @@ terraform -install-autocomplete
 ## Short Summary
 
 To install Terraform on Ubuntu or Debian, update your system, install required packages, add HashiCorp's GPG key, add the official HashiCorp repository, update apt, and install Terraform with `apt-get`.
+

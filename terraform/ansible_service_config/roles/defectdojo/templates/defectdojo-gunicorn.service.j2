@@ -1,0 +1,39 @@
+# defectdojo-gunicorn.service - Ansible-managed
+[Unit]
+Description=DefectDojo Gunicorn Application Server
+Documentation=https://defectdojo.github.io/django-DefectDojo/
+After=network.target postgresql.service redis-server.service
+
+[Service]
+Type=simple
+User={{ defectdojo_user }}
+Group={{ defectdojo_group }}
+WorkingDirectory={{ defectdojo_install_dir }}
+RuntimeDirectory=defectdojo
+RuntimeDirectoryMode=0755
+
+Environment="DJANGO_SETTINGS_MODULE=dojo.settings.settings"
+Environment="DD_DATABASE_URL=postgresql://{{ defectdojo_db_user }}:{{ defectdojo_db_password }}@{{ defectdojo_db_host }}:{{ defectdojo_db_port }}/{{ defectdojo_db_name }}"
+Environment="DD_SECRET_KEY={{ defectdojo_secret_key }}"
+Environment="DD_ALLOWED_HOSTS={{ defectdojo_domain }}"
+
+ExecStart={{ defectdojo_install_dir }}/venv/bin/gunicorn \
+    --workers 3 \
+    --worker-class gthread \
+    --threads 4 \
+    --timeout 120 \
+    --bind unix:/run/defectdojo/defectdojo.sock \
+    --access-logfile /var/log/defectdojo/access.log \
+    --error-logfile /var/log/defectdojo/error.log \
+    --log-level warning \
+    dojo.wsgi:application
+
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

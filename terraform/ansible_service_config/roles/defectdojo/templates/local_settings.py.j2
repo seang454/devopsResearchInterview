@@ -1,0 +1,76 @@
+# local_settings.py - Ansible-managed, do not edit manually.
+
+from .settings import *
+
+SECRET_KEY = '{{ defectdojo_secret_key }}'
+
+DEBUG = False
+
+ALLOWED_HOSTS = ['{{ defectdojo_domain }}', 'localhost', '127.0.0.1']
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': '{{ defectdojo_db_name }}',
+        'USER': '{{ defectdojo_db_user }}',
+        'PASSWORD': '{{ defectdojo_db_password }}',
+        'HOST': '{{ defectdojo_db_host }}',
+        'PORT': '{{ defectdojo_db_port }}',
+        'OPTIONS': {
+            'sslmode': 'prefer',
+        },
+    }
+}
+
+# Redis / Celery broker
+CELERY_BROKER_URL = 'redis://{{ redis_host }}:{{ redis_port }}/0'
+CELERY_RESULT_BACKEND = 'redis://{{ redis_host }}:{{ redis_port }}/1'
+
+# Cache
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://{{ redis_host }}:{{ redis_port }}/2',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+
+# Static / Media files
+STATIC_ROOT = '{{ defectdojo_install_dir }}/static'
+MEDIA_ROOT = '{{ defectdojo_install_dir }}/media'
+
+# Security headers (enforced by Nginx/HTTPS)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+
+# Logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'WARNING',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': '/var/log/defectdojo/defectdojo.log',
+            'maxBytes': 1024 * 1024 * 10,  # 10 MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['file'],
+        'level': 'WARNING',
+    },
+}

@@ -1,0 +1,54 @@
+---
+- name: Deploy Gunicorn systemd service
+  ansible.builtin.template:
+    src: defectdojo-gunicorn.service.j2
+    dest: /etc/systemd/system/defectdojo-gunicorn.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - reload systemd
+    - restart defectdojo
+  no_log: true
+
+- name: Deploy Celery worker systemd service
+  ansible.builtin.template:
+    src: defectdojo-celery-worker.service.j2
+    dest: /etc/systemd/system/defectdojo-celery-worker.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - reload systemd
+    - restart celery worker
+  no_log: true
+
+- name: Deploy Celery beat systemd service
+  ansible.builtin.template:
+    src: defectdojo-celery-beat.service.j2
+    dest: /etc/systemd/system/defectdojo-celery-beat.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - reload systemd
+    - restart celery beat
+  no_log: true
+
+- name: Enable and start Gunicorn
+  ansible.builtin.service:
+    name: defectdojo-gunicorn
+    state: started
+    enabled: true
+
+- name: Enable and start Celery worker
+  ansible.builtin.service:
+    name: defectdojo-celery-worker
+    state: started
+    enabled: true
+
+- name: Enable and start Celery beat
+  ansible.builtin.service:
+    name: defectdojo-celery-beat
+    state: started
+    enabled: true

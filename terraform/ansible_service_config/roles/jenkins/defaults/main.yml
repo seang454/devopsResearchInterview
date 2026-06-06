@@ -1,0 +1,20 @@
+---
+jenkins_domain: "jenkins.example.com"
+certbot_email: "admin@example.com"
+jenkins_enable_https: true
+certbot_staging: false
+certbot_redirect_http_to_https: true
+jenkins_certbot_verify_renewal: false
+
+jenkins_network: jenkins
+jenkins_image_name: custom-jenkins-blueocean
+jenkins_image_version: "lts-jdk21"
+jenkins_glab_version: "latest"
+
+jenkins_container_name: jenkins-blueocean
+jenkins_data_volume: jenkins-data
+jenkins_certs_volume: jenkins-docker-certs
+
+jenkins_http_port: 8080
+jenkins_agent_port: 50000
+jenkins_dind_port: 2376

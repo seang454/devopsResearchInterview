@@ -1,0 +1,13 @@
+---
+- name: Ensure Redis is started and enabled
+  ansible.builtin.service:
+    name: redis-server
+    state: started
+    enabled: true
+
+- name: Configure Redis to bind on localhost only
+  ansible.builtin.lineinfile:
+    path: /etc/redis/redis.conf
+    regexp: '^bind '
+    line: 'bind 127.0.0.1 ::1'
+  notify: restart redis

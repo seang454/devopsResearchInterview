@@ -1,0 +1,23 @@
+---
+nexus_domain: "nexus.example.com"
+nexus_docker_repo_domain: "docker.example.com"
+certbot_email: "admin@example.com"
+nexus_enable_https: true
+certbot_staging: false
+certbot_redirect_http_to_https: true
+nexus_certbot_verify_renewal: false
+
+nexus_admin_username: admin
+nexus_admin_password: ""
+
+nexus_network: nexus
+nexus_data_volume: nexus-data
+nexus_image: sonatype/nexus3:latest
+
+nexus_port: 8081
+nexus_docker_port: 8082
+
+nexus_docker_blob: docker-hosted
+nexus_helm_blob: helm-hosted
+nexus_docker_repo_name: docker-hosted
+nexus_helm_repo_name: helm-hosted

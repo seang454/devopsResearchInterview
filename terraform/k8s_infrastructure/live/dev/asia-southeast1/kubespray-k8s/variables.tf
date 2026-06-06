@@ -1,0 +1,208 @@
+variable "project_id" {
+  description = "GCP project ID."
+  type        = string
+}
+
+variable "gcp_adc_file" {
+  description = "Optional path to a Google Application Default Credentials JSON file. Leave empty to use normal ADC discovery."
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "region" {
+  description = "GCP region."
+  type        = string
+  default     = "asia-southeast1"
+}
+
+variable "cluster_name" {
+  description = "Short cluster name used in labels and firewall names."
+  type        = string
+  default     = "kubespray"
+}
+
+variable "instance_name_prefix" {
+  description = "Prefix used for GCP VM instance names."
+  type        = string
+  default     = "k8s"
+}
+
+variable "control_plane_count" {
+  description = "Number of Kubernetes control plane nodes."
+  type        = number
+  default     = 3
+}
+
+variable "worker_count" {
+  description = "Number of Kubernetes worker nodes."
+  type        = number
+  default     = 3
+}
+
+variable "control_plane_name_prefix" {
+  description = "Kubespray inventory hostname prefix for control plane nodes."
+  type        = string
+  default     = "master"
+}
+
+variable "worker_name_prefix" {
+  description = "Kubespray inventory hostname prefix for worker nodes."
+  type        = string
+  default     = "worker"
+}
+
+variable "zone" {
+  description = "Fallback GCP zone used when zones is empty."
+  type        = string
+  default     = "asia-southeast1-a"
+}
+
+variable "zones" {
+  description = "List of GCP zones used to spread Kubernetes nodes. If empty, Terraform uses zone."
+  type        = list(string)
+  default     = []
+}
+
+variable "auto_discover_up_zones" {
+  description = "When true, Terraform asks GCP for zones with status UP before building the node plan."
+  type        = bool
+  default     = true
+}
+
+variable "fallback_regions" {
+  description = "Extra GCP regions Terraform may use when preferred zones are down or blocked."
+  type        = list(string)
+  default     = []
+}
+
+variable "blocked_zones" {
+  description = "GCP zones to skip after a zone is down or exhausted."
+  type        = list(string)
+  default     = []
+}
+
+variable "blocked_regions" {
+  description = "GCP regions to skip after a resource pool is exhausted."
+  type        = list(string)
+  default     = []
+}
+
+variable "control_plane_machine_types" {
+  description = "Machine types for control plane nodes by index. If there are more nodes than values, Terraform reuses the last value."
+  type        = list(string)
+  default     = ["e2-standard-2"]
+}
+
+variable "worker_machine_types" {
+  description = "Machine types for worker nodes by index. If there are more nodes than values, Terraform reuses the last value."
+  type        = list(string)
+  default     = ["e2-standard-2"]
+}
+
+variable "desired_status" {
+  description = "Desired VM power state. RUNNING keeps Terraform-managed VMs up; TERMINATED stops them."
+  type        = string
+  default     = "RUNNING"
+}
+
+variable "image" {
+  description = "Boot disk image."
+  type        = string
+  default     = "ubuntu-os-cloud/ubuntu-2404-lts-amd64"
+}
+
+variable "control_plane_boot_disk_size_gb" {
+  description = "Control plane boot disk size in GB."
+  type        = number
+  default     = 50
+}
+
+variable "worker_boot_disk_size_gb" {
+  description = "Worker boot disk size in GB."
+  type        = number
+  default     = 50
+}
+
+variable "boot_disk_type" {
+  description = "Boot disk type."
+  type        = string
+  default     = "pd-balanced"
+}
+
+variable "network" {
+  description = "GCP VPC network name or self link."
+  type        = string
+  default     = "default"
+}
+
+variable "subnetwork" {
+  description = "GCP subnetwork name or self link. Leave null to use default behavior."
+  type        = string
+  default     = null
+}
+
+variable "ssh_user" {
+  description = "Linux SSH username configured on the GCP VMs."
+  type        = string
+  default     = "seang"
+}
+
+variable "ssh_public_key_path" {
+  description = "Path to the SSH public key Terraform adds to each VM."
+  type        = string
+}
+
+variable "ssh_source_ranges" {
+  description = "CIDR ranges allowed to connect to SSH."
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
+
+variable "internal_source_ranges" {
+  description = "CIDR ranges allowed for internal Kubernetes node-to-node traffic."
+  type        = list(string)
+  default     = ["10.0.0.0/8"]
+}
+
+variable "kubernetes_api_source_ranges" {
+  description = "CIDR ranges allowed to connect to the Kubernetes API server on 6443."
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
+
+variable "nodeport_source_ranges" {
+  description = "Optional CIDR ranges allowed to connect to NodePort range 30000-32767. Leave empty to skip this firewall rule."
+  type        = list(string)
+  default     = []
+}
+
+variable "kubespray_inventory_path" {
+  description = "Path where Terraform writes the generated Kubespray inventory file."
+  type        = string
+  default     = "../../../../../ansible_kubespray_k8s/kubespray/inventory/sample/inventory.ini"
+}
+
+variable "ansible_user" {
+  description = "Ansible SSH user written into the Kubespray inventory."
+  type        = string
+  default     = "seang"
+}
+
+variable "ansible_ssh_private_key_file" {
+  description = "SSH private key path written into the Kubespray inventory."
+  type        = string
+  default     = "/home/seang/.ssh/id_rsa"
+}
+
+variable "ansible_python_interpreter" {
+  description = "Python interpreter path written into the Kubespray inventory."
+  type        = string
+  default     = "/usr/bin/python3"
+}
+
+variable "ansible_ssh_extra_args" {
+  description = "Extra SSH options written into the Kubespray inventory."
+  type        = string
+  default     = "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+}

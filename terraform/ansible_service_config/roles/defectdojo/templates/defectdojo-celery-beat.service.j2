@@ -1,0 +1,27 @@
+# defectdojo-celery-beat.service - Ansible-managed
+[Unit]
+Description=DefectDojo Celery Beat Scheduler
+After=network.target redis-server.service postgresql.service
+
+[Service]
+Type=simple
+User={{ defectdojo_user }}
+Group={{ defectdojo_group }}
+WorkingDirectory={{ defectdojo_install_dir }}
+
+Environment="DJANGO_SETTINGS_MODULE=dojo.settings.settings"
+Environment="DD_DATABASE_URL=postgresql://{{ defectdojo_db_user }}:{{ defectdojo_db_password }}@{{ defectdojo_db_host }}:{{ defectdojo_db_port }}/{{ defectdojo_db_name }}"
+Environment="DD_SECRET_KEY={{ defectdojo_secret_key }}"
+
+ExecStart={{ defectdojo_install_dir }}/venv/bin/celery \
+    -A dojo \
+    beat \
+    --loglevel=warning \
+    --scheduler django_celery_beat.schedulers:DatabaseScheduler \
+    --logfile=/var/log/defectdojo/celery-beat.log
+
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

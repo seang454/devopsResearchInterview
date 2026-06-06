@@ -1,0 +1,34 @@
+---
+# DefectDojo version
+defectdojo_version: "2.37.0"
+defectdojo_install_dir: /opt/defectdojo
+
+# Domain and HTTPS
+defectdojo_domain: "defectdojo.example.com"
+certbot_email: "admin@example.com"
+defectdojo_enable_https: true
+certbot_staging: false
+certbot_redirect_http_to_https: true
+defectdojo_certbot_verify_renewal: false
+
+# Database
+defectdojo_db_name: defectdojo
+defectdojo_db_user: defectdojo
+defectdojo_db_password: ""
+defectdojo_db_host: localhost
+defectdojo_db_port: 5432
+
+# Django application
+defectdojo_secret_key: ""
+defectdojo_admin_user: admin
+defectdojo_admin_password: ""
+defectdojo_admin_email: "admin@example.com"
+
+# Celery and Redis
+redis_host: localhost
+redis_port: 6379
+
+# System
+defectdojo_user: defectdojo
+defectdojo_group: defectdojo
+python_version: python3

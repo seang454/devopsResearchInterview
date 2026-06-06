@@ -1,0 +1,30 @@
+# defectdojo-celery-worker.service - Ansible-managed
+[Unit]
+Description=DefectDojo Celery Worker
+After=network.target redis-server.service postgresql.service
+
+[Service]
+Type=simple
+User={{ defectdojo_user }}
+Group={{ defectdojo_group }}
+WorkingDirectory={{ defectdojo_install_dir }}
+
+Environment="DJANGO_SETTINGS_MODULE=dojo.settings.settings"
+Environment="DD_DATABASE_URL=postgresql://{{ defectdojo_db_user }}:{{ defectdojo_db_password }}@{{ defectdojo_db_host }}:{{ defectdojo_db_port }}/{{ defectdojo_db_name }}"
+Environment="DD_SECRET_KEY={{ defectdojo_secret_key }}"
+Environment="C_FORCE_ROOT=false"
+
+ExecStart={{ defectdojo_install_dir }}/venv/bin/celery \
+    -A dojo \
+    worker \
+    --loglevel=warning \
+    --concurrency=4 \
+    --pidfile=/run/defectdojo/celery-worker.pid \
+    --logfile=/var/log/defectdojo/celery-worker.log
+
+RuntimeDirectory=defectdojo
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

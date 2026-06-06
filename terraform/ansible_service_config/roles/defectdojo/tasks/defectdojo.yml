@@ -1,0 +1,92 @@
+---
+- name: Clone DefectDojo repository
+  ansible.builtin.git:
+    repo: "https://github.com/DefectDojo/django-DefectDojo.git"
+    dest: "{{ defectdojo_install_dir }}"
+    version: "{{ defectdojo_version }}"
+    force: true
+  become_user: "{{ defectdojo_user }}"
+  notify: restart defectdojo
+
+- name: Create Python virtual environment
+  ansible.builtin.command:
+    cmd: "{{ python_version }} -m venv {{ defectdojo_install_dir }}/venv"
+    creates: "{{ defectdojo_install_dir }}/venv"
+  become_user: "{{ defectdojo_user }}"
+
+- name: Upgrade pip inside virtualenv
+  ansible.builtin.pip:
+    name: pip
+    state: latest
+    virtualenv: "{{ defectdojo_install_dir }}/venv"
+  become_user: "{{ defectdojo_user }}"
+
+- name: Install DefectDojo Python requirements
+  ansible.builtin.pip:
+    requirements: "{{ defectdojo_install_dir }}/requirements.txt"
+    virtualenv: "{{ defectdojo_install_dir }}/venv"
+    extra_args: "--no-cache-dir"
+  become_user: "{{ defectdojo_user }}"
+
+- name: Deploy DefectDojo local settings
+  ansible.builtin.template:
+    src: local_settings.py.j2
+    dest: "{{ defectdojo_install_dir }}/dojo/settings/local_settings.py"
+    owner: "{{ defectdojo_user }}"
+    group: "{{ defectdojo_group }}"
+    mode: "0640"
+  notify: restart defectdojo
+  no_log: true
+
+- name: Run database migrations
+  community.general.django_manage:
+    command: migrate
+    app_path: "{{ defectdojo_install_dir }}"
+    virtualenv: "{{ defectdojo_install_dir }}/venv"
+  become_user: "{{ defectdojo_user }}"
+  environment:
+    DD_DATABASE_URL: "postgresql://{{ defectdojo_db_user }}:{{ defectdojo_db_password }}@{{ defectdojo_db_host }}:{{ defectdojo_db_port }}/{{ defectdojo_db_name }}"
+    DD_SECRET_KEY: "{{ defectdojo_secret_key }}"
+    DJANGO_SETTINGS_MODULE: "dojo.settings.settings"
+  no_log: true
+
+- name: Collect static files
+  community.general.django_manage:
+    command: collectstatic
+    app_path: "{{ defectdojo_install_dir }}"
+    virtualenv: "{{ defectdojo_install_dir }}/venv"
+  become_user: "{{ defectdojo_user }}"
+  environment:
+    DD_DATABASE_URL: "postgresql://{{ defectdojo_db_user }}:{{ defectdojo_db_password }}@{{ defectdojo_db_host }}:{{ defectdojo_db_port }}/{{ defectdojo_db_name }}"
+    DD_SECRET_KEY: "{{ defectdojo_secret_key }}"
+    DJANGO_SETTINGS_MODULE: "dojo.settings.settings"
+  no_log: true
+
+- name: Create DefectDojo superuser (idempotent)
+  community.general.django_manage:
+    command: >
+      shell -c "
+      from django.contrib.auth import get_user_model;
+      User = get_user_model();
+      User.objects.filter(username='{{ defectdojo_admin_user }}').exists() or
+      User.objects.create_superuser(
+        '{{ defectdojo_admin_user }}',
+        '{{ defectdojo_admin_email }}',
+        '{{ defectdojo_admin_password }}'
+      )"
+    app_path: "{{ defectdojo_install_dir }}"
+    virtualenv: "{{ defectdojo_install_dir }}/venv"
+  become_user: "{{ defectdojo_user }}"
+  environment:
+    DD_DATABASE_URL: "postgresql://{{ defectdojo_db_user }}:{{ defectdojo_db_password }}@{{ defectdojo_db_host }}:{{ defectdojo_db_port }}/{{ defectdojo_db_name }}"
+    DD_SECRET_KEY: "{{ defectdojo_secret_key }}"
+    DJANGO_SETTINGS_MODULE: "dojo.settings.settings"
+  no_log: true
+
+- name: Set correct ownership on install directory
+  ansible.builtin.file:
+    path: "{{ defectdojo_install_dir }}"
+    state: directory
+    owner: "{{ defectdojo_user }}"
+    group: "{{ defectdojo_group }}"
+    recurse: true

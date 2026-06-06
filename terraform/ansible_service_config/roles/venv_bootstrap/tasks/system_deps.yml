@@ -1,0 +1,25 @@
+---
+- name: Validate supported OS family
+  ansible.builtin.assert:
+    that:
+      - ansible_os_family == "Debian"
+    fail_msg: "ansible_service_config currently supports Debian/Ubuntu targets."
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install shared service environment packages
+  ansible.builtin.apt:
+    name: "{{ service_config_system_packages }}"
+    state: present
+
+- name: Ensure Docker service is running when installed
+  ansible.builtin.systemd:
+    name: docker
+    state: started
+    enabled: true
+  when:
+    - service_config_start_docker | bool
+    - "'docker.io' in service_config_system_packages"
