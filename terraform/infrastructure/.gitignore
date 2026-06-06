@@ -1,5 +1,4 @@
 .terraform/
-terraform.tfvars
 application_default_credentials.json
 *application_default_credentials*.json
 *.tfstate
