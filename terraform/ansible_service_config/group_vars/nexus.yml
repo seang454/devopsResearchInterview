@@ -8,6 +8,5 @@
 nexus_enable_https: true
 certbot_staging: true
 
-# First run can print the initial Nexus password.
-# After you change it in the UI, set the new password here or in Ansible Vault.
-nexus_admin_password: ""
+# After the first login, store the changed password in group_vars/nexus/vault.yml.
+nexus_admin_password: "{{ vault_nexus_admin_password | default('') }}"

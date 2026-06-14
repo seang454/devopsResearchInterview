@@ -10,6 +10,6 @@ for component in \
 do
   echo "Validating $component"
   cd "$component"
-  terraform init
+  terraform init -backend=false
   terraform validate
 done

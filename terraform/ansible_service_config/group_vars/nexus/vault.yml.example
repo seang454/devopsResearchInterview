@@ -1,0 +1,3 @@
+---
+# Create this after changing the initial Nexus password, then encrypt the file.
+vault_nexus_admin_password: "REPLACE_WITH_CHANGED_NEXUS_PASSWORD"
