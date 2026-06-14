@@ -25,7 +25,7 @@ terraform {
       source = "hashicorp/google"
 
       # Allow any Google provider version from 5.0 up to, but not including, 6.0.
-      version = "~> 5.0"
+      version = "~> 7.36"
     }
 
     # Used only to write the generated Ansible inventory file on this machine.
