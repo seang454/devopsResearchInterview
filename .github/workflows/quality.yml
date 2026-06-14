@@ -20,7 +20,7 @@ jobs:
           - root: terraform/k8s_infrastructure
             component: terraform/k8s_infrastructure/live/dev/asia-southeast1/kubespray-k8s
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.11.4"
@@ -44,7 +44,7 @@ jobs:
       run:
         working-directory: terraform/ansible_service_config
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -58,7 +58,7 @@ jobs:
   security:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Scan first-party Terraform
         uses: bridgecrewio/checkov-action@v12
         with:
