@@ -1,0 +1,14 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+  - package-ecosystem: terraform
+    directory: /terraform/infrastructure/live/dev/asia-southeast1/gcp-vm
+    schedule:
+      interval: monthly
+  - package-ecosystem: terraform
+    directory: /terraform/k8s_infrastructure/live/dev/asia-southeast1/kubespray-k8s
+    schedule:
+      interval: monthly

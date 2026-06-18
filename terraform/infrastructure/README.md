@@ -28,11 +28,6 @@ infrastructure/
 |-- README.md
 |-- .gitignore
 |
-|-- .github/
-|   |-- workflows/
-|       |-- terraform-plan.yml
-|       |-- terraform-apply.yml
-|
 |-- modules/
 |   |-- gcp-vm/
 |   |   |-- main.tf
@@ -74,9 +69,6 @@ infrastructure/
 |   |-- runbook.md
 |   |-- disaster-recovery.md
 |
-|-- state/
-|   |-- dev/
-|       |-- asia-southeast1/
 ```
 
 ## Main Folders
@@ -87,7 +79,8 @@ infrastructure/
 
 `live/dev/asia-southeast1/gcp-vm` is the real dev deployment. Run Terraform from this folder.
 
-`state/` stores local Terraform state for this learning project. For production, use a remote backend such as GCS or HCP Terraform.
+Terraform state is stored in a private, versioned GCS bucket. Supply the bucket
+and state prefix through a local `backend.gcs.hcl` file.
 
 `../ansible_service_config` contains the Ansible configuration that installs and configures SonarQube after the VM exists.
 
@@ -98,8 +91,9 @@ PowerShell:
 ```powershell
 cd D:\CSTADPreUniversityTraining\ITP\researchforinterview\terraform\infrastructure\live\dev\asia-southeast1\gcp-vm
 Copy-Item terraform.tfvars.example terraform.tfvars
+Copy-Item backend.gcs.hcl.example backend.gcs.hcl
 notepad terraform.tfvars
-terraform init
+terraform init -backend-config=backend.gcs.hcl
 terraform plan
 terraform apply
 terraform output ansible_inventory_path
@@ -140,7 +134,7 @@ bash scripts/apply-dev-and-run-ansible.sh
 The script runs:
 
 ```text
-terraform init
+terraform init -backend-config=backend.gcs.hcl
 terraform apply
 prompt: Run Ansible now?
 ansible-playbook -i inventories/dev/hosts.ini playbooks/site.yml

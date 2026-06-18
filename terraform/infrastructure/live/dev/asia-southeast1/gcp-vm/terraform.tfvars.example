@@ -206,7 +206,7 @@ cloudflare_dns_records = {
 #
 # Backend ports such as SonarQube 9000, Jenkins 8080, Nexus 8081/8082,
 # Trivy 4954, and Vault 8200 stay behind Nginx and are not opened by GCP.
-ssh_source_ranges            = ["0.0.0.0/0"]
+ssh_source_ranges            = ["203.0.113.10/32"]
 public_service_ports         = [80, 443]
 public_service_source_ranges = ["0.0.0.0/0"]
 
