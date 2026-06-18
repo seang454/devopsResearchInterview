@@ -8,12 +8,13 @@ KUBESPRAY_DIR="$PROJECT_DIR/ansible_kubespray_k8s/kubespray"
 
 PLAYBOOK="${1:-cluster.yml}"
 INVENTORY="${ANSIBLE_INVENTORY:-inventory/sample/inventory.ini}"
+BACKEND_CONFIG="${BACKEND_CONFIG:-backend.gcs.hcl}"
 
 echo "Terraform root:"
 echo "  $INFRA_DIR"
 echo
 
-terraform -chdir="$INFRA_DIR" init
+terraform -chdir="$INFRA_DIR" init -backend-config="$BACKEND_CONFIG"
 terraform -chdir="$INFRA_DIR" apply
 
 echo
