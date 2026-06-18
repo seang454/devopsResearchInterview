@@ -121,7 +121,7 @@ nexus_admin_password is needed after the initial password file is no longer usab
 Usually keep defaults:
 
 ```yaml
-nexus_image: sonatype/nexus3:latest
+nexus_image: sonatype/nexus3:3.82.0
 nexus_port: 8081
 nexus_docker_port: 8082
 nexus_docker_repo_name: docker-hosted

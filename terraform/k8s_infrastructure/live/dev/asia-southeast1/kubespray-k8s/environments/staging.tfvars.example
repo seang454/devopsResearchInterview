@@ -1,0 +1,9 @@
+project_id   = "REPLACE_WITH_STAGING_PROJECT_ID"
+cluster_name = "staging-kubespray"
+
+control_plane_count = 3
+worker_count        = 2
+
+ssh_source_ranges            = ["203.0.113.10/32"]
+kubernetes_api_source_ranges = ["203.0.113.10/32"]
+internal_source_ranges       = ["10.0.0.0/8"]
