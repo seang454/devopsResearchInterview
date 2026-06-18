@@ -150,9 +150,13 @@ variable "ssh_public_key_path" {
 }
 
 variable "ssh_source_ranges" {
-  description = "CIDR ranges allowed to connect to SSH."
+  description = "Trusted CIDR ranges allowed to connect to SSH. World-open access is rejected."
   type        = list(string)
-  default     = ["0.0.0.0/0"]
+
+  validation {
+    condition     = length(var.ssh_source_ranges) > 0 && !contains(var.ssh_source_ranges, "0.0.0.0/0") && !contains(var.ssh_source_ranges, "::/0")
+    error_message = "ssh_source_ranges must contain trusted CIDRs and cannot include 0.0.0.0/0 or ::/0."
+  }
 }
 
 variable "public_service_ports" {

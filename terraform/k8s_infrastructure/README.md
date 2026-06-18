@@ -45,7 +45,9 @@ Terraform updates this file during `terraform apply`.
 
 ```bash
 cd terraform/k8s_infrastructure/live/dev/asia-southeast1/kubespray-k8s
-terraform init
+cp backend.gcs.hcl.example backend.gcs.hcl
+cp terraform.tfvars.example terraform.tfvars
+terraform init -backend-config=backend.gcs.hcl
 terraform apply
 ```
 

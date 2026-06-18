@@ -9,7 +9,7 @@ jenkins_certbot_verify_renewal: false
 jenkins_network: jenkins
 jenkins_image_name: custom-jenkins-blueocean
 jenkins_image_version: "lts-jdk21"
-jenkins_glab_version: "latest"
+jenkins_glab_version: "1.59.2"
 
 jenkins_container_name: jenkins-blueocean
 jenkins_data_volume: jenkins-data

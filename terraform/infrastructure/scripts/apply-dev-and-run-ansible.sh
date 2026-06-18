@@ -8,12 +8,13 @@ ANSIBLE_DIR="$PROJECT_DIR/ansible_service_config"
 
 PLAYBOOK="${1:-playbooks/site.yml}"
 INVENTORY="${ANSIBLE_INVENTORY:-inventories/dev/hosts.ini}"
+BACKEND_CONFIG="${BACKEND_CONFIG:-backend.gcs.hcl}"
 
 echo "Terraform root:"
 echo "  $INFRA_DIR"
 echo
 
-terraform -chdir="$INFRA_DIR" init
+terraform -chdir="$INFRA_DIR" init -backend-config="$BACKEND_CONFIG"
 terraform -chdir="$INFRA_DIR" apply
 
 echo
