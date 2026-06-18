@@ -9,5 +9,5 @@ sonarqube_enable_https: true
 certbot_staging: true
 sonarqube_web_port: 9000
 
-# Mock required secret for learning. Replace/rotate for production.
-sonarqube_database_password: "Oo6a7mCoAFseD4ST98JZf04R2YIQHuqG"
+# Secret is loaded from group_vars/sonarqube/vault.yml.
+sonarqube_database_password: "{{ vault_sonarqube_database_password }}"

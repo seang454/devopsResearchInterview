@@ -1,0 +1,2 @@
+bucket = "REPLACE_WITH_VERSIONED_PRIVATE_GCS_STATE_BUCKET"
+prefix = "k8s-infrastructure/dev/asia-southeast1/kubespray-k8s"

@@ -94,7 +94,7 @@ ansible_service_config/
 : Stores target server IPs or DNS names. Each service has a group such as `[sonarqube]`, `[jenkins]`, `[nexus]`, `[defectdojo]`, `[trivy]`, and `[vault]`.
 
 `group_vars/`
-: Stores shared variables and per-service examples. Copy a `*.yml.example` file to `*.yml` when you want inventory group-specific overrides. Sensitive values should eventually move to Ansible Vault.
+: Stores shared variables and per-service examples. Sensitive values must live in encrypted, ignored `group_vars/<service>/vault.yml` files.
 
 `collections/`
 : Lists Ansible collections required by the roles, including PostgreSQL, Docker, and general community modules.
@@ -204,7 +204,7 @@ service_hostname: "sonarqube.seang.shop"
 sonarqube_domain: "sonarqube.seang.shop"
 ```
 
-Ansible loads that file automatically for hosts in the matching inventory group. Keep secrets such as database passwords and admin passwords in your copied `group_vars/<service>.yml` file or Ansible Vault. The generated `terraform_domains.yml` files should only contain DNS/domain values from Terraform.
+Ansible loads that file automatically for hosts in the matching inventory group. Keep secrets such as database passwords and admin passwords in encrypted `group_vars/<service>/vault.yml` files. The generated `terraform_domains.yml` files should only contain DNS/domain values from Terraform.
 
 Existing roles use their role-specific variable names, for example `sonarqube_domain` or `jenkins_domain`. For new roles, use the generic `service_domain` variable when possible. That keeps the new role dynamic: add the Cloudflare A/AAAA record, and Terraform can generate the inventory group plus domain vars automatically.
 
@@ -227,7 +227,7 @@ group_vars/trivy.yml
 group_vars/vault.yml
 ```
 
-Edit those real files before running the related playbook. The `*.yml.example` files are only reference templates and are not loaded by Ansible.
+Edit non-secret values in those files before running the related playbook. Create encrypted service vault files from the `group_vars/<service>/vault.yml.example` templates for secrets.
 
 Install required collections:
 
@@ -342,7 +342,7 @@ or:
 
 ```yaml
 trivy_install_method: binary
-trivy_binary_version: latest
+trivy_binary_version: "0.63.0"
 ```
 
 Use `apt` for normal Ubuntu/Debian package management. Use `binary` when you want to install directly from the Trivy GitHub release archive.

@@ -8,8 +8,8 @@
 defectdojo_enable_https: true
 certbot_staging: true
 
-# Mock required secrets for learning. Replace/rotate for production.
-defectdojo_db_password: "e2LWrAWl0DnLzGDLrGgr5v3GKANNhM6V"
-defectdojo_secret_key: "BmitfYA2e88ggOSpNTfUzqCWMgN8QMHQSbCfSCnyDKQevrtbPWrUXxZZP1AvxO2G"
-defectdojo_admin_password: "F0oz2JF07duLKpnpNDNzi4BeLAoE4CiW"
+# Secrets are loaded from group_vars/defectdojo/vault.yml.
+defectdojo_db_password: "{{ vault_defectdojo_db_password }}"
+defectdojo_secret_key: "{{ vault_defectdojo_secret_key }}"
+defectdojo_admin_password: "{{ vault_defectdojo_admin_password }}"
 defectdojo_admin_email: "pengseangsim@210.gmail.com"
