@@ -1,6 +1,7 @@
 param(
     [string]$Playbook = "cluster.yml",
     [string]$Inventory = "inventory/sample/inventory.ini",
+    [string]$BackendConfig = "backend.gcs.hcl",
     [switch]$SkipRequirementsInstall
 )
 
@@ -15,7 +16,7 @@ Write-Host "Terraform root:"
 Write-Host "  $InfraDir"
 Write-Host ""
 
-terraform -chdir="$InfraDir" init
+terraform -chdir="$InfraDir" init -backend-config="$BackendConfig"
 terraform -chdir="$InfraDir" apply
 
 Write-Host ""
