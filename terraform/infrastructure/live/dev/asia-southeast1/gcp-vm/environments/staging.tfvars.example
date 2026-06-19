@@ -1,0 +1,10 @@
+project_id = "REPLACE_WITH_STAGING_PROJECT_ID"
+name       = "staging-services"
+
+instance_count    = 2
+ssh_source_ranges = ["203.0.113.10/32"]
+
+public_service_ports         = [80, 443]
+public_service_source_ranges = ["0.0.0.0/0"]
+
+enable_cloudflare_dns = false

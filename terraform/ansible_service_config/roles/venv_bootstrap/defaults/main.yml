@@ -54,7 +54,7 @@ service_config_link_ansible_commands: true
 service_config_start_docker: false
 
 service_config_install_glab: false
-service_config_glab_version: latest
+service_config_glab_version: "1.59.2"
 service_config_glab_install_dir: /usr/local/bin
 service_config_glab_arch_map:
   x86_64: amd64

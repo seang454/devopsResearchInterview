@@ -18,7 +18,7 @@ trivy_package_name: trivy
 trivy_version: ""
 
 # Binary installation settings, used only when trivy_install_method: binary
-trivy_binary_version: "latest"
+trivy_binary_version: "0.63.0"
 trivy_binary_arch_map:
   x86_64: "64bit"
   amd64: "64bit"

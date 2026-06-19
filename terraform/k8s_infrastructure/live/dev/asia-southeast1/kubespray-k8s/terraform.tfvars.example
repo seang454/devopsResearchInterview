@@ -63,11 +63,11 @@ ssh_public_key_path = "~/.ssh/id_rsa.pub"
 ansible_user                 = ""
 ansible_ssh_private_key_file = "~/.ssh/id_rsa"
 ansible_python_interpreter   = "/usr/bin/python3"
-ansible_ssh_extra_args       = "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+ansible_ssh_extra_args       = "-o StrictHostKeyChecking=accept-new"
 
 kubespray_inventory_path = "../../../../../ansible_kubespray_k8s/kubespray/inventory/sample/inventory.ini"
 
-ssh_source_ranges            = ["0.0.0.0/0"]
-kubernetes_api_source_ranges = ["0.0.0.0/0"]
+ssh_source_ranges            = ["203.0.113.10/32"]
+kubernetes_api_source_ranges = ["203.0.113.10/32"]
 internal_source_ranges       = ["10.0.0.0/8"]
 nodeport_source_ranges       = []
