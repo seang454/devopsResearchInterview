@@ -325,7 +325,7 @@ Keep `proxied = false` while Ansible uses Certbot HTTP validation.
 ```powershell
 Copy-Item terraform.tfvars.example terraform.tfvars
 notepad terraform.tfvars
-terraform init
+terraform init -reconfigure -backend-config=backend.gcs.hcl
 terraform plan
 terraform apply
 terraform output -raw server_ip

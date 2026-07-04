@@ -36,26 +36,64 @@ SSH key and authenticate with GCP:
 ```bash
 ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519
 gcloud auth application-default login
+gcloud config set project YOUR_GCP_PROJECT_ID
 ```
 
 Update the Terraform examples to use `~/.ssh/id_ed25519.pub` and your trusted
 public IP CIDR. Never use `0.0.0.0/0` for SSH or the Kubernetes API.
 
-## First Deployment
+## Run Flow
 
-Create a private GCS bucket with public access prevention, uniform bucket-level
-access, and object versioning. Then prepare local configuration:
+The service stack already includes a backend config at
+`terraform/infrastructure/live/dev/asia-southeast1/gcp-vm/backend.gcs.hcl`.
+Create the matching GCS bucket first, then initialize Terraform against it.
+
+1. Authenticate and set your project.
+
+```bash
+ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519
+gcloud auth application-default login
+gcloud config set project YOUR_GCP_PROJECT_ID
+```
+
+2. Create the GCS state bucket with the bootstrap stack.
+
+```bash
+cd terraform/infrastructure/bootstrap
+terraform init
+terraform apply -var="project_id=YOUR_GCP_PROJECT_ID"
+```
+
+3. Apply the service infrastructure.
 
 ```bash
 cd terraform/infrastructure/live/dev/asia-southeast1/gcp-vm
-cp backend.gcs.hcl.example backend.gcs.hcl
 cp terraform.tfvars.example terraform.tfvars
-terraform init -backend-config=backend.gcs.hcl
+terraform init -reconfigure -backend-config=backend.gcs.hcl
 terraform plan
+terraform apply
 ```
 
-Repeat under `terraform/k8s_infrastructure/live/dev/asia-southeast1/kubespray-k8s`
-for the Kubernetes stack. Use distinct backend prefixes for every environment.
+4. Configure the VM with Ansible.
+
+```bash
+cd terraform/ansible_service_config
+ansible-galaxy collection install -r collections/requirements.yml
+ansible-playbook -i inventories/dev/hosts.ini playbooks/site.yml
+```
+
+5. Optional: apply the Kubernetes stack and run Kubespray.
+
+```bash
+cd terraform/k8s_infrastructure/live/dev/asia-southeast1/kubespray-k8s
+cp terraform.tfvars.example terraform.tfvars
+terraform init
+terraform apply
+cd terraform/ansible_kubespray_k8s/kubespray
+ansible-playbook -i inventory/sample/inventory.ini cluster.yml
+```
+
+Use distinct backend prefixes for every environment.
 
 ## Ansible Secrets
 
@@ -121,7 +159,8 @@ external IPv4 addresses.
 
 ## Operations
 
-- Apply service infrastructure: `bash terraform/infrastructure/scripts/apply-dev-and-run-ansible.sh`
+- For a fresh setup, follow the Run Flow above.
+- Apply service infrastructure after the GCS backend exists: `bash terraform/infrastructure/scripts/apply-dev-and-run-ansible.sh`
 - Apply Kubernetes infrastructure: `bash terraform/k8s_infrastructure/scripts/apply-dev-and-run-ansible.sh`
 - Recovery guidance: `terraform/infrastructure/docs/disaster-recovery.md`
 - Kubespray version policy: `terraform/ansible_kubespray_k8s/KUBESPRAY_DEPENDENCY.md`

@@ -13,7 +13,7 @@ echo "Terraform root:"
 echo "  $INFRA_DIR"
 echo
 
-terraform -chdir="$INFRA_DIR" init
+terraform -chdir="$INFRA_DIR" init -reconfigure -backend-config=backend.gcs.hcl
 terraform -chdir="$INFRA_DIR" apply
 
 echo
