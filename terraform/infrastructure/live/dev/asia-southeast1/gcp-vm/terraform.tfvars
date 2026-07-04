@@ -28,7 +28,7 @@ blocked_regions = []
 
 # Recommended: empty means Google automatically discovers ADC for whichever
 # user runs Terraform after `gcloud auth application-default login`.
-gcp_adc_file = ""
+gcp_adc_file = "/home/seang/.config/gcloud/application_default_credentials.json"
 
 # Optional explicit Linux/WSL path. "~" dynamically means the current user:
 # gcp_adc_file = "~/.config/gcloud/application_default_credentials.json"
@@ -75,7 +75,7 @@ ansible_group_vars_path           = "../../../../../ansible_service_config/group
 # Cloudflare DNS is disabled until you set your real zone ID and token.
 # Prefer setting CLOUDFLARE_API_TOKEN in your shell instead of putting a token here.
 enable_cloudflare_dns = true
-cloudflare_zone_id    = ""
+cloudflare_zone_id    = "25794f1056c9f59652052d977bd73acb"
 cloudflare_api_token  = ""
 
 # vm_index is one-based:
