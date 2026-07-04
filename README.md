@@ -167,3 +167,11 @@ external IPv4 addresses.
 
 Before applying, review the Terraform plan, confirm estimated GCP cost, verify
 the backend prefix, and confirm that administrative CIDRs are restricted.
+
+Addtional Note
+- terraform {} is used to configure Terraform itself, not the cloud resources.
+`Where to store state, Which Terraform version is required, Which provider plugins are required`
+- terraform {} = Terraform settings
+- provider {}  = cloud/API connection settings
+- resource {}  = real things to create
+- module {}    = call reusable Terraform code
