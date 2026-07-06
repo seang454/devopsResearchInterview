@@ -43,6 +43,7 @@ service_config_python_bootstrap_packages:
 service_config_base_python_packages:
   - ansible
   - cryptography
+  - docker
   - psycopg2-binary
   - PyYAML
   - requests
