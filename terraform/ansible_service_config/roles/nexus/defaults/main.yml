@@ -1,7 +1,7 @@
 ---
 nexus_domain: "nexus.example.com"
 nexus_docker_repo_domain: "docker.example.com"
-certbot_email: "admin@example.com"
+certbot_email: "pengseangsim210@gmail.com"
 nexus_enable_https: true
 certbot_staging: false
 certbot_redirect_http_to_https: true

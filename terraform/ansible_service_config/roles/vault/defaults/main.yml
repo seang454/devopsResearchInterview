@@ -3,7 +3,7 @@
 vault_domain: "vault.example.com"
 
 # Required for Let's Encrypt / Certbot
-certbot_email: "admin@example.com"
+certbot_email: "pengseangsim210@gmail.com"
 
 # Vault settings
 vault_ui_enabled: true

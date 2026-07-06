@@ -40,7 +40,7 @@ trivy_server_domain: "trivy.example.com"
 trivy_server_listen_host: "127.0.0.1"
 trivy_server_port: 4954
 trivy_enable_https: true
-certbot_email: "admin@example.com"
+certbot_email: "pengseangsim210@gmail.com"
 certbot_staging: false
 certbot_redirect_http_to_https: true
 trivy_certbot_verify_renewal: false

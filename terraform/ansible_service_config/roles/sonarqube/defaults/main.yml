@@ -9,7 +9,7 @@ sonarqube_group: sonarqube
 
 sonarqube_domain: "sonarqube.example.com"
 sonarqube_enable_https: true
-certbot_email: "admin@example.com"
+certbot_email: "pengseangsim210@gmail.com"
 certbot_staging: false
 certbot_redirect_http_to_https: true
 sonarqube_certbot_verify_renewal: false

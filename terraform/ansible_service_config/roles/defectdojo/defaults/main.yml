@@ -5,7 +5,7 @@ defectdojo_install_dir: /opt/defectdojo
 
 # Domain and HTTPS
 defectdojo_domain: "defectdojo.example.com"
-certbot_email: "admin@example.com"
+certbot_email: "pengseangsim210@gmail.com"
 defectdojo_enable_https: true
 certbot_staging: false
 certbot_redirect_http_to_https: true
@@ -22,7 +22,7 @@ defectdojo_db_port: 5432
 defectdojo_secret_key: ""
 defectdojo_admin_user: admin
 defectdojo_admin_password: "defectdojoadmin@12345"
-defectdojo_admin_email: "admin@example.com"
+defectdojo_admin_email: "pengseangsim210@gmail.com"
 
 # Celery and Redis
 redis_host: localhost
