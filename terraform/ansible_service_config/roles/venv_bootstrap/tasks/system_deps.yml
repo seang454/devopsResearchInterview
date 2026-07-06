@@ -2,7 +2,7 @@
 - name: Validate supported OS family
   ansible.builtin.assert:
     that:
-      - ansible_os_family == "Debian"
+      - ansible_facts["os_family"] == "Debian"
     fail_msg: "ansible_service_config currently supports Debian/Ubuntu targets."
 
 - name: Update apt cache

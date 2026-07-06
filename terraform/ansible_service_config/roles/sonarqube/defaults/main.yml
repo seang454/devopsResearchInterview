@@ -16,6 +16,6 @@ sonarqube_certbot_verify_renewal: false
 
 sonarqube_database_name: sonarqube
 sonarqube_database_user: sonaruser
-sonarqube_database_password: ""
+sonarqube_database_password: "sonarpassword@12345"
 sonarqube_database_host: localhost
 sonarqube_database_port: 5432

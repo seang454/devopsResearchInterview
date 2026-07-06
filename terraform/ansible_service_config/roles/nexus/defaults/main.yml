@@ -8,7 +8,7 @@ certbot_redirect_http_to_https: true
 nexus_certbot_verify_renewal: false
 
 nexus_admin_username: admin
-nexus_admin_password: ""
+nexus_admin_password: "nexusadmin@12345"
 
 nexus_network: nexus
 nexus_data_volume: nexus-data

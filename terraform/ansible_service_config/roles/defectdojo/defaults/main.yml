@@ -14,14 +14,14 @@ defectdojo_certbot_verify_renewal: false
 # Database
 defectdojo_db_name: defectdojo
 defectdojo_db_user: defectdojo
-defectdojo_db_password: ""
+defectdojo_db_password: "defectdojodb@12345"
 defectdojo_db_host: localhost
 defectdojo_db_port: 5432
 
 # Django application
 defectdojo_secret_key: ""
 defectdojo_admin_user: admin
-defectdojo_admin_password: ""
+defectdojo_admin_password: "defectdojoadmin@12345"
 defectdojo_admin_email: "admin@example.com"
 
 # Celery and Redis

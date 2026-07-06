@@ -20,7 +20,7 @@
 
 - name: Set glab architecture
   ansible.builtin.set_fact:
-    service_config_glab_arch: "{{ service_config_glab_arch_map[ansible_architecture] | default(ansible_architecture) }}"
+    service_config_glab_arch: "{{ service_config_glab_arch_map[ansible_facts['architecture']] | default(ansible_facts['architecture']) }}"
   when: service_config_install_glab | bool
 
 - name: Download glab binary archive
