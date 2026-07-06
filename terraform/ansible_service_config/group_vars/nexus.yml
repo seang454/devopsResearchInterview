@@ -6,7 +6,7 @@
 # certbot_email: "pengseangsim@210.gmail.com"
 
 nexus_enable_https: true
-certbot_staging: true
+certbot_staging: false
 
 # First run can print the initial Nexus password.
 # After you change it in the UI, set the new password here or in Ansible Vault.

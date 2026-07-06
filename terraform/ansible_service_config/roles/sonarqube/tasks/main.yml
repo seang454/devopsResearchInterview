@@ -80,11 +80,9 @@
     force: true
 
 - name: Set SonarQube ownership
-  ansible.builtin.file:
-    path: "/opt/sonarqube-{{ sonarqube_version }}"
-    owner: "{{ sonarqube_user }}"
-    group: "{{ sonarqube_group }}"
-    recurse: true
+  ansible.builtin.shell: |
+    chown -R {{ sonarqube_user }}:{{ sonarqube_group }} "/opt/sonarqube-{{ sonarqube_version }}"
+  changed_when: false
 
 - name: Configure SonarQube properties
   ansible.builtin.template:

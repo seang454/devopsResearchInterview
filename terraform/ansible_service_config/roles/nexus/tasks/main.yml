@@ -122,6 +122,11 @@
   delay: 15
   until: nexus_status.status == 200
 
+- name: Wait additional time for Nexus authentication system to be ready
+  ansible.builtin.pause:
+    seconds: 30
+  when: nexus_status.status == 200
+
 # ---- Certbot SSL (runs after Nexus is ready to avoid 502) ----
 - name: Check if SSL certificate already exists for Nexus UI
   ansible.builtin.stat:
@@ -227,6 +232,24 @@
       - nexus_api_password | length > 0
     fail_msg: "Set nexus_admin_password after the initial Nexus admin password has been changed."
 
+- name: Wait for Nexus authentication system to be ready
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ nexus_port }}/service/rest/v1/status"
+    method: GET
+    user: "{{ nexus_admin_username }}"
+    password: "{{ nexus_api_password }}"
+    force_basic_auth: true
+  register: nexus_auth_check
+  retries: 20
+  delay: 15
+  until: nexus_auth_check.status == 200
+  ignore_errors: true
+
+- name: Additional wait for authentication rate limiting to clear
+  ansible.builtin.pause:
+    seconds: 60
+  when: nexus_auth_check.status | default(0) == 200
+
 # ---- Check existing blob stores and repos ----
 - name: Check existing blob stores
   ansible.builtin.uri:
@@ -237,6 +260,9 @@
     force_basic_auth: true
     return_content: true
   register: existing_blobstores
+  retries: 10
+  delay: 10
+  until: existing_blobstores.status == 200
   no_log: true
 
 - name: Check existing repositories
@@ -248,6 +274,9 @@
     force_basic_auth: true
     return_content: true
   register: existing_repos
+  retries: 10
+  delay: 10
+  until: existing_repos.status == 200
   no_log: true
 
 # ---- Docker blob store ----
@@ -264,6 +293,10 @@
       path: "{{ nexus_docker_blob }}"
     status_code: [200, 201, 204]
   when: nexus_docker_blob not in (existing_blobstores.json | map(attribute='name') | list)
+  retries: 5
+  delay: 10
+  until: create_docker_blob.status | default(0) in [200, 201, 204]
+  register: create_docker_blob
   no_log: true
 
 - name: Update Docker blob store
@@ -279,6 +312,10 @@
       path: "{{ nexus_docker_blob }}"
     status_code: [200, 201, 204]
   when: nexus_docker_blob in (existing_blobstores.json | map(attribute='name') | list)
+  retries: 5
+  delay: 10
+  until: update_docker_blob.status | default(0) in [200, 201, 204]
+  register: update_docker_blob
   no_log: true
 
 # ---- Helm blob store ----
@@ -295,6 +332,10 @@
       path: "{{ nexus_helm_blob }}"
     status_code: [200, 201, 204]
   when: nexus_helm_blob not in (existing_blobstores.json | map(attribute='name') | list)
+  retries: 5
+  delay: 10
+  until: create_helm_blob.status | default(0) in [200, 201, 204]
+  register: create_helm_blob
   no_log: true
 
 - name: Update Helm blob store
@@ -310,6 +351,10 @@
       path: "{{ nexus_helm_blob }}"
     status_code: [200, 201, 204]
   when: nexus_helm_blob in (existing_blobstores.json | map(attribute='name') | list)
+  retries: 5
+  delay: 10
+  until: update_helm_blob.status | default(0) in [200, 201, 204]
+  register: update_helm_blob
   no_log: true
 
 # ---- Docker hosted repository ----
@@ -334,6 +379,10 @@
         httpPort: 8082
     status_code: [200, 201, 204]
   when: nexus_docker_repo_name not in (existing_repos.json | map(attribute='name') | list)
+  retries: 5
+  delay: 10
+  until: create_docker_repo.status | default(0) in [200, 201, 204]
+  register: create_docker_repo
   no_log: true
 
 - name: Update Docker hosted repository
@@ -357,6 +406,10 @@
         httpPort: 8082
     status_code: [200, 201, 204]
   when: nexus_docker_repo_name in (existing_repos.json | map(attribute='name') | list)
+  retries: 5
+  delay: 10
+  until: update_docker_repo.status | default(0) in [200, 201, 204]
+  register: update_docker_repo
   no_log: true
 
 # ---- Helm hosted repository ----
@@ -377,6 +430,10 @@
         writePolicy: ALLOW
     status_code: [200, 201, 204]
   when: nexus_helm_repo_name not in (existing_repos.json | map(attribute='name') | list)
+  retries: 5
+  delay: 10
+  until: create_helm_repo.status | default(0) in [200, 201, 204]
+  register: create_helm_repo
   no_log: true
 
 - name: Update Helm hosted repository
@@ -396,4 +453,8 @@
         writePolicy: ALLOW
     status_code: [200, 201, 204]
   when: nexus_helm_repo_name in (existing_repos.json | map(attribute='name') | list)
+  retries: 5
+  delay: 10
+  until: update_helm_repo.status | default(0) in [200, 201, 204]
+  register: update_helm_repo
   no_log: true

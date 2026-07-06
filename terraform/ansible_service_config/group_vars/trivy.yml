@@ -8,5 +8,5 @@
 trivy_install_method: apt
 trivy_server_enable: true
 trivy_enable_https: true
-certbot_staging: true
+certbot_staging: false
 trivy_enable_db_update_cron: false

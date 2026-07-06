@@ -194,9 +194,13 @@ ssh_source_ranges            = ["0.0.0.0/0"]
 public_service_ports         = [80, 443]
 public_service_source_ranges = ["0.0.0.0/0"]
 
-# Add only ports that truly need direct remote access.
-# Example for Jenkins inbound agents:
-# additional_service_ports         = [50000]
-# additional_service_source_ranges = ["YOUR_JENKINS_AGENT_IP/32"]
-additional_service_ports         = []
-additional_service_source_ranges = []
+# Service backend ports (typically behind Nginx, but now exposed for direct access if needed):
+# - Jenkins: 8080
+# - SonarQube: 9000
+# - Nexus UI: 8081
+# - Nexus Docker repo: 8082
+# - DefectDojo: 8000
+# - Trivy: 4954
+# - Vault: 8200
+additional_service_ports         = [8000, 8080, 8081, 8082, 8200, 4954, 9000]
+additional_service_source_ranges = ["0.0.0.0/0"]

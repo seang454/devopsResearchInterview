@@ -6,7 +6,7 @@
 # certbot_email: "pengseangsim@210.gmail.com"
 
 defectdojo_enable_https: true
-certbot_staging: true
+certbot_staging: false
 
 # Mock required secrets for learning. Replace/rotate for production.
 defectdojo_db_password: "e2LWrAWl0DnLzGDLrGgr5v3GKANNhM6V"

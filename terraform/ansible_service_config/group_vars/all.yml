@@ -6,4 +6,4 @@
 # If every service uses the same Let's Encrypt contact email, set it here.
 # Change this if you want Let's Encrypt notices sent to another mailbox.
 certbot_email: "pengseangsim@210.gmail.com"
-certbot_staging: true
+certbot_staging: false

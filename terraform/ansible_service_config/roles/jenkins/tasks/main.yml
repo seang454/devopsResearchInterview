@@ -99,24 +99,6 @@
   become: true
 
 # ---- Jenkins Dockerfile ----
-- name: Resolve latest glab version
-  ansible.builtin.shell: |
-    curl -fsSL 'https://gitlab.com/api/v4/projects/gitlab-org%2Fcli/releases?per_page=1' | \
-    python3 -c "import json,sys; print(json.load(sys.stdin)[0]['tag_name'].lstrip('v'))"
-  register: glab_version_result
-  changed_when: false
-  when: jenkins_glab_version == "latest"
-
-- name: Set resolved glab version
-  ansible.builtin.set_fact:
-    resolved_glab_version: "{{ glab_version_result.stdout | trim }}"
-  when: jenkins_glab_version == "latest"
-
-- name: Use specified glab version
-  ansible.builtin.set_fact:
-    resolved_glab_version: "{{ jenkins_glab_version }}"
-  when: jenkins_glab_version != "latest"
-
 - name: Create Jenkins build directory
   ansible.builtin.file:
     path: /opt/jenkins-docker
@@ -138,8 +120,6 @@
     build:
       path: /opt/jenkins-docker
       pull: true
-      args:
-        GLAB_VERSION: "{{ resolved_glab_version }}"
     source: build
     force_source: false
   become: true

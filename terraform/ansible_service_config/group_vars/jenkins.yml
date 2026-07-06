@@ -6,4 +6,4 @@
 # certbot_email: "pengseangsim@210.gmail.com"
 
 jenkins_enable_https: true
-certbot_staging: true
+certbot_staging: false

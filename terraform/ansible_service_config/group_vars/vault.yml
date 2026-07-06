@@ -5,4 +5,4 @@
 # Set in group_vars/all.yml:
 # certbot_email: "pengseangsim@210.gmail.com"
 
-certbot_staging: true
+certbot_staging: false
