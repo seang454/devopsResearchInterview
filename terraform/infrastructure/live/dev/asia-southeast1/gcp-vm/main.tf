@@ -1,6 +1,7 @@
-// we will create file name backend.gcs.hcl to store the backend configuration for Terraform state in GCS bucket
-//syntax of backend.gcs.hcl will use name of backend.gcs , so it will know which .tf file to generate to main.tf
+# backend.gcs.hcl stores backend values such as bucket and prefix.
+# Terraform reads it during:
+# terraform init -backend-config=backend.gcs.hcl
+# so the gernerated value will be stored in terraform.tfstate file not in this file.so backend "gcs"{} still the same as before, but the values are read from backend.gcs.hcl file.
 terraform {
-  # Supply bucket and prefix from backend.gcs.hcl during terraform init.
   backend "gcs" {}
 }
