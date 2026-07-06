@@ -59,7 +59,7 @@ resource "google_storage_bucket" "terraform_state" {
   }
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
 
   labels = {
