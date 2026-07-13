@@ -6,9 +6,12 @@ nexus_enable_https: true
 certbot_staging: false
 certbot_redirect_http_to_https: true
 nexus_certbot_verify_renewal: false
+nexus_auth_rate_limit_min_wait_seconds: 300
+nexus_auth_rate_limit_buffer_seconds: 30
+nexus_reset_data: false
 
 nexus_admin_username: admin
-nexus_admin_password: "nexusadmin@12345"
+nexus_admin_password: ""
 
 nexus_network: nexus
 nexus_data_volume: nexus-data

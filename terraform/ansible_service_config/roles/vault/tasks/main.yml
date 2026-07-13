@@ -106,6 +106,45 @@
 - name: Flush handlers before requesting certificate
   ansible.builtin.meta: flush_handlers
 
+- name: Check if Vault certificate already exists
+  ansible.builtin.stat:
+    path: "/etc/letsencrypt/live/{{ vault_domain }}/fullchain.pem"
+  register: vault_cert_status
+
+- name: Inspect existing Vault certificate issuer
+  ansible.builtin.command:
+    cmd: >-
+      openssl x509
+      -in /etc/letsencrypt/live/{{ vault_domain }}/fullchain.pem
+      -noout
+      -issuer
+  register: vault_cert_issuer
+  changed_when: false
+  failed_when: false
+  when: vault_cert_status.stat.exists | default(false)
+
+- name: Determine whether the Vault certificate needs issuance
+  ansible.builtin.set_fact:
+    vault_cert_needs_issuance: >-
+      {{
+        not (vault_cert_status.stat.exists | default(false))
+        or vault_cert_issuer.rc | default(1) != 0
+        or (
+          certbot_staging | bool
+          and not (
+            "Let's Encrypt" in (vault_cert_issuer.stdout | default(''))
+            or "Fake LE" in (vault_cert_issuer.stdout | default(''))
+          )
+        )
+        or (
+          not certbot_staging | bool
+          and not (
+            "Let's Encrypt" in (vault_cert_issuer.stdout | default(''))
+            and "Fake LE" not in (vault_cert_issuer.stdout | default(''))
+          )
+        )
+      }}
+
 - name: Request or renew Let's Encrypt certificate for Vault domain
   ansible.builtin.command: >-
     certbot --nginx
@@ -115,9 +154,8 @@
     --non-interactive
     {{ '--redirect' if certbot_redirect_http_to_https else '' }}
     {{ '--staging' if certbot_staging else '' }}
-  args:
-    creates: "/etc/letsencrypt/live/{{ vault_domain }}/fullchain.pem"
   notify: Reload nginx
+  when: vault_cert_needs_issuance | default(false) | bool
 
 - name: Ensure Certbot auto-renewal timer is enabled
   ansible.builtin.systemd:

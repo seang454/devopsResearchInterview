@@ -282,6 +282,15 @@ nexus_admin_password: "YOUR_REAL_NEXUS_ADMIN_PASSWORD"
 ```
 
 Without this value, the role cannot call the Nexus REST API after the initial password file is no longer valid.
+The role now probes authentication once, waits out a single 429 `Retry-After` window if Nexus is rate-limited, and then fails fast if Nexus still rejects the selected password.
+
+For a disposable dev Nexus instance where the admin password is lost, reset the Nexus data volume and bootstrap it again:
+
+```bash
+ansible-playbook -i inventories/dev/hosts.ini playbooks/nexus.yml -e nexus_reset_data=true
+```
+
+This deletes Nexus repositories, blob stores, and local Nexus configuration stored in the Docker volume.
 
 ## HTTPS With Certbot
 
@@ -329,6 +338,8 @@ For production, keep HTTPS enabled and replace all `example.com` values with rea
 ```yaml
 certbot_staging: true
 ```
+
+If you already created a staging or otherwise untrusted certificate, rerun the HTTPS role after setting `certbot_staging: false`. The service roles now reissue non-Let's Encrypt certificates instead of silently reusing them.
 
 ## Trivy Install Method
 

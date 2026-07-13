@@ -263,6 +263,47 @@
     - trivy_server_enable | bool
     - trivy_enable_https | bool
 
+- name: Inspect existing Trivy certificate issuer
+  ansible.builtin.command:
+    cmd: >-
+      openssl x509
+      -in /etc/letsencrypt/live/{{ trivy_server_domain }}/fullchain.pem
+      -noout
+      -issuer
+  register: trivy_cert_issuer
+  changed_when: false
+  failed_when: false
+  become: true
+  when:
+    - trivy_server_enable | bool
+    - trivy_enable_https | bool
+    - trivy_cert_status.stat.exists | default(false)
+
+- name: Determine whether the Trivy certificate needs issuance
+  ansible.builtin.set_fact:
+    trivy_cert_needs_issuance: >-
+      {{
+        not (trivy_cert_status.stat.exists | default(false))
+        or trivy_cert_issuer.rc | default(1) != 0
+        or (
+          certbot_staging | bool
+          and not (
+            "Let's Encrypt" in (trivy_cert_issuer.stdout | default(''))
+            or "Fake LE" in (trivy_cert_issuer.stdout | default(''))
+          )
+        )
+        or (
+          not certbot_staging | bool
+          and not (
+            "Let's Encrypt" in (trivy_cert_issuer.stdout | default(''))
+            and "Fake LE" not in (trivy_cert_issuer.stdout | default(''))
+          )
+        )
+      }}
+  when:
+    - trivy_server_enable | bool
+    - trivy_enable_https | bool
+
 - name: Obtain Let's Encrypt certificate for Trivy server
   ansible.builtin.command: >-
     certbot --nginx
@@ -282,7 +323,7 @@
   when:
     - trivy_server_enable | bool
     - trivy_enable_https | bool
-    - not (trivy_cert_status.stat.exists | default(false))
+    - trivy_cert_needs_issuance | default(false) | bool
 
 - name: Ensure Certbot auto-renewal timer is enabled
   ansible.builtin.systemd:

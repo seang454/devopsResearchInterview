@@ -184,6 +184,43 @@
   register: sonarqube_cert_status
   when: sonarqube_enable_https | bool
 
+- name: Inspect existing SonarQube certificate issuer
+  ansible.builtin.command:
+    cmd: >-
+      openssl x509
+      -in /etc/letsencrypt/live/{{ sonarqube_domain }}/fullchain.pem
+      -noout
+      -issuer
+  register: sonarqube_cert_issuer
+  changed_when: false
+  failed_when: false
+  when:
+    - sonarqube_enable_https | bool
+    - sonarqube_cert_status.stat.exists | default(false)
+
+- name: Determine whether the SonarQube certificate needs issuance
+  ansible.builtin.set_fact:
+    sonarqube_cert_needs_issuance: >-
+      {{
+        not (sonarqube_cert_status.stat.exists | default(false))
+        or sonarqube_cert_issuer.rc | default(1) != 0
+        or (
+          certbot_staging | bool
+          and not (
+            "Let's Encrypt" in (sonarqube_cert_issuer.stdout | default(''))
+            or "Fake LE" in (sonarqube_cert_issuer.stdout | default(''))
+          )
+        )
+        or (
+          not certbot_staging | bool
+          and not (
+            "Let's Encrypt" in (sonarqube_cert_issuer.stdout | default(''))
+            and "Fake LE" not in (sonarqube_cert_issuer.stdout | default(''))
+          )
+        )
+      }}
+  when: sonarqube_enable_https | bool
+
 - name: Obtain Let's Encrypt certificate for SonarQube
   ansible.builtin.command: >-
     certbot --nginx
@@ -201,7 +238,7 @@
   notify: reload nginx
   when:
     - sonarqube_enable_https | bool
-    - not (sonarqube_cert_status.stat.exists | default(false))
+    - sonarqube_cert_needs_issuance | default(false) | bool
 
 - name: Ensure Certbot auto-renewal timer is enabled
   ansible.builtin.systemd:

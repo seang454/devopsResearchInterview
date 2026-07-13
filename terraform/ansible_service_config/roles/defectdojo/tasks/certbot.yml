@@ -4,6 +4,40 @@
     path: "/etc/letsencrypt/live/{{ defectdojo_domain }}/fullchain.pem"
   register: cert_stat
 
+- name: Inspect existing DefectDojo certificate issuer
+  ansible.builtin.command:
+    cmd: >-
+      openssl x509
+      -in /etc/letsencrypt/live/{{ defectdojo_domain }}/fullchain.pem
+      -noout
+      -issuer
+  register: defectdojo_cert_issuer
+  changed_when: false
+  failed_when: false
+  when: cert_stat.stat.exists | default(false)
+
+- name: Determine whether the DefectDojo certificate needs issuance
+  ansible.builtin.set_fact:
+    defectdojo_cert_needs_issuance: >-
+      {{
+        not (cert_stat.stat.exists | default(false))
+        or defectdojo_cert_issuer.rc | default(1) != 0
+        or (
+          certbot_staging | bool
+          and not (
+            "Let's Encrypt" in (defectdojo_cert_issuer.stdout | default(''))
+            or "Fake LE" in (defectdojo_cert_issuer.stdout | default(''))
+          )
+        )
+        or (
+          not certbot_staging | bool
+          and not (
+            "Let's Encrypt" in (defectdojo_cert_issuer.stdout | default(''))
+            and "Fake LE" not in (defectdojo_cert_issuer.stdout | default(''))
+          )
+        )
+      }}
+
 - name: Obtain Let's Encrypt certificate via Nginx plugin
   ansible.builtin.command: >
     certbot --nginx
@@ -13,7 +47,7 @@
     --email {{ certbot_email }}
     {% if certbot_staging %}--staging{% endif %}
     {% if certbot_redirect_http_to_https %}--redirect{% endif %}
-  when: not (cert_stat.stat.exists | default(false))
+  when: defectdojo_cert_needs_issuance | default(false) | bool
   notify: reload nginx
 
 - name: Deploy final Nginx HTTPS config

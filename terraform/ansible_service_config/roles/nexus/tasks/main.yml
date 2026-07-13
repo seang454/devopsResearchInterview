@@ -34,16 +34,6 @@
     mode: "0755"
   become: true
 
-# ---- Clean up old symlinks before recreating ----
-- name: Remove existing Nginx site symlinks to ensure correct links
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: absent
-  loop:
-    - /etc/nginx/sites-enabled/nexus
-    - /etc/nginx/sites-enabled/nexus-docker
-  become: true
-
 # ---- Nexus Nginx Virtual Hosts ----
 - name: Deploy Nginx config for Nexus UI
   ansible.builtin.template:
@@ -64,6 +54,7 @@
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
     state: link
+    force: true
   loop:
     - { src: /etc/nginx/sites-available/nexus,       dest: /etc/nginx/sites-enabled/nexus }
     - { src: /etc/nginx/sites-available/nexus-docker, dest: /etc/nginx/sites-enabled/nexus-docker }
@@ -85,6 +76,22 @@
     name: "{{ nexus_network }}"
     state: present
   become: true
+
+# ---- Optional Nexus data reset ----
+- name: Stop and remove Nexus container when data reset is requested
+  community.docker.docker_container:
+    name: nexus
+    state: absent
+    force_kill: true
+  become: true
+  when: nexus_reset_data | bool
+
+- name: Remove Nexus data Docker volume when data reset is requested
+  community.docker.docker_volume:
+    name: "{{ nexus_data_volume }}"
+    state: absent
+  become: true
+  when: nexus_reset_data | bool
 
 # ---- Nexus volume ----
 - name: Create Nexus data Docker volume
@@ -134,6 +141,43 @@
   register: cert_status_nexus
   when: nexus_enable_https | bool
 
+- name: Inspect existing Nexus UI certificate issuer
+  ansible.builtin.command:
+    cmd: >-
+      openssl x509
+      -in /etc/letsencrypt/live/{{ nexus_domain }}/fullchain.pem
+      -noout
+      -issuer
+  register: nexus_ui_cert_issuer
+  changed_when: false
+  failed_when: false
+  when:
+    - nexus_enable_https | bool
+    - cert_status_nexus.stat.exists | default(false)
+
+- name: Determine whether the Nexus UI certificate needs issuance
+  ansible.builtin.set_fact:
+    nexus_ui_cert_needs_issuance: >-
+      {{
+        not (cert_status_nexus.stat.exists | default(false))
+        or nexus_ui_cert_issuer.rc | default(1) != 0
+        or (
+          certbot_staging | bool
+          and not (
+            "Let's Encrypt" in (nexus_ui_cert_issuer.stdout | default(''))
+            or "Fake LE" in (nexus_ui_cert_issuer.stdout | default(''))
+          )
+        )
+        or (
+          not certbot_staging | bool
+          and not (
+            "Let's Encrypt" in (nexus_ui_cert_issuer.stdout | default(''))
+            and "Fake LE" not in (nexus_ui_cert_issuer.stdout | default(''))
+          )
+        )
+      }}
+  when: nexus_enable_https | bool
+
 - name: Obtain Let's Encrypt certificate for Nexus UI
   ansible.builtin.command:
     cmd: >
@@ -152,12 +196,49 @@
     - "'Certificate not yet due for renewal' not in certbot_nexus_result.stdout"
   when:
     - nexus_enable_https | bool
-    - not (cert_status_nexus.stat.exists | default(false))
+    - nexus_ui_cert_needs_issuance | default(false) | bool
 
 - name: Check if SSL certificate already exists for Docker repo domain
   ansible.builtin.stat:
     path: "/etc/letsencrypt/live/{{ nexus_docker_repo_domain }}/fullchain.pem"
   register: cert_status_docker
+  when: nexus_enable_https | bool
+
+- name: Inspect existing Nexus Docker repo certificate issuer
+  ansible.builtin.command:
+    cmd: >-
+      openssl x509
+      -in /etc/letsencrypt/live/{{ nexus_docker_repo_domain }}/fullchain.pem
+      -noout
+      -issuer
+  register: nexus_docker_cert_issuer
+  changed_when: false
+  failed_when: false
+  when:
+    - nexus_enable_https | bool
+    - cert_status_docker.stat.exists | default(false)
+
+- name: Determine whether the Nexus Docker repo certificate needs issuance
+  ansible.builtin.set_fact:
+    nexus_docker_cert_needs_issuance: >-
+      {{
+        not (cert_status_docker.stat.exists | default(false))
+        or nexus_docker_cert_issuer.rc | default(1) != 0
+        or (
+          certbot_staging | bool
+          and not (
+            "Let's Encrypt" in (nexus_docker_cert_issuer.stdout | default(''))
+            or "Fake LE" in (nexus_docker_cert_issuer.stdout | default(''))
+          )
+        )
+        or (
+          not certbot_staging | bool
+          and not (
+            "Let's Encrypt" in (nexus_docker_cert_issuer.stdout | default(''))
+            and "Fake LE" not in (nexus_docker_cert_issuer.stdout | default(''))
+          )
+        )
+      }}
   when: nexus_enable_https | bool
 
 - name: Obtain Let's Encrypt certificate for Docker repo domain
@@ -178,7 +259,7 @@
     - "'Certificate not yet due for renewal' not in certbot_docker_repo_result.stdout"
   when:
     - nexus_enable_https | bool
-    - not (cert_status_docker.stat.exists | default(false))
+    - nexus_docker_cert_needs_issuance | default(false) | bool
 
 - name: Ensure Certbot auto-renewal timer is enabled
   ansible.builtin.systemd:
@@ -232,23 +313,76 @@
       - nexus_api_password | length > 0
     fail_msg: "Set nexus_admin_password after the initial Nexus admin password has been changed."
 
-- name: Wait for Nexus authentication system to be ready
+- name: Check Nexus authentication with the selected admin password
   ansible.builtin.uri:
     url: "http://127.0.0.1:{{ nexus_port }}/service/rest/v1/status"
     method: GET
     user: "{{ nexus_admin_username }}"
     password: "{{ nexus_api_password }}"
     force_basic_auth: true
+    status_code: [200, 401, 403, 429]
   register: nexus_auth_check
-  retries: 20
-  delay: 15
-  until: nexus_auth_check.status == 200
-  ignore_errors: true
+  changed_when: false
+  failed_when: false
+  no_log: true
 
-- name: Additional wait for authentication rate limiting to clear
+- name: Record Nexus authentication rate-limit wait time
+  ansible.builtin.set_fact:
+    nexus_auth_retry_after_seconds: >-
+      {{
+        [
+          (nexus_auth_check.retry_after | default(0) | int) + (nexus_auth_rate_limit_buffer_seconds | int),
+          nexus_auth_rate_limit_min_wait_seconds | int
+        ] | max
+      }}
+  when: nexus_auth_check.status | default(0) == 429
+
+- name: Wait for Nexus authentication rate limiting to clear
   ansible.builtin.pause:
-    seconds: 60
-  when: nexus_auth_check.status | default(0) == 200
+    seconds: "{{ nexus_auth_retry_after_seconds }}"
+  when: nexus_auth_check.status | default(0) == 429
+
+- name: Re-check Nexus authentication after waiting for rate limiting
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ nexus_port }}/service/rest/v1/status"
+    method: GET
+    user: "{{ nexus_admin_username }}"
+    password: "{{ nexus_api_password }}"
+    force_basic_auth: true
+    status_code: [200, 401, 403, 429]
+  register: nexus_auth_check_after_wait
+  changed_when: false
+  failed_when: false
+  no_log: true
+  when: nexus_auth_check.status | default(0) == 429
+
+- name: Select effective Nexus authentication result
+  ansible.builtin.set_fact:
+    nexus_auth_check_status_effective: >-
+      {{
+        nexus_auth_check_after_wait.status
+        if (nexus_auth_check_after_wait is defined and nexus_auth_check_after_wait.status is defined)
+        else nexus_auth_check.status
+      }}
+    nexus_auth_retry_after_effective: >-
+      {{
+        nexus_auth_check_after_wait.retry_after
+        if (nexus_auth_check_after_wait is defined and nexus_auth_check_after_wait.retry_after is defined)
+        else (nexus_auth_check.retry_after | default(900))
+      }}
+  no_log: true
+
+- name: Fail when Nexus authentication is not ready
+  ansible.builtin.fail:
+    msg: >-
+      Nexus REST authentication returned HTTP {{ nexus_auth_check_status_effective | default('unknown') }}.
+      {% if nexus_admin_password | length == 0 %}
+      The initial /nexus-data/admin.password value is no longer accepted. Set nexus_admin_password to the current admin password before rerunning this role.
+      {% else %}
+      Set nexus_admin_password to the current admin password before rerunning this role.
+      {% endif %}
+      If Nexus is temporarily rate-limited, wait {{ nexus_auth_retry_after_effective | default(nexus_auth_rate_limit_min_wait_seconds) }} seconds before trying again.
+  when: nexus_auth_check_status_effective | default(0) | int != 200
 
 # ---- Check existing blob stores and repos ----
 - name: Check existing blob stores

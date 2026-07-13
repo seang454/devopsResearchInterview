@@ -52,6 +52,43 @@
   register: cert_status
   when: jenkins_enable_https | bool
 
+- name: Inspect existing Jenkins certificate issuer
+  ansible.builtin.command:
+    cmd: >-
+      openssl x509
+      -in /etc/letsencrypt/live/{{ jenkins_domain }}/fullchain.pem
+      -noout
+      -issuer
+  register: jenkins_cert_issuer
+  changed_when: false
+  failed_when: false
+  when:
+    - jenkins_enable_https | bool
+    - cert_status.stat.exists | default(false)
+
+- name: Determine whether the Jenkins certificate needs issuance
+  ansible.builtin.set_fact:
+    jenkins_cert_needs_issuance: >-
+      {{
+        not (cert_status.stat.exists | default(false))
+        or jenkins_cert_issuer.rc | default(1) != 0
+        or (
+          certbot_staging | bool
+          and not (
+            "Let's Encrypt" in (jenkins_cert_issuer.stdout | default(''))
+            or "Fake LE" in (jenkins_cert_issuer.stdout | default(''))
+          )
+        )
+        or (
+          not certbot_staging | bool
+          and not (
+            "Let's Encrypt" in (jenkins_cert_issuer.stdout | default(''))
+            and "Fake LE" not in (jenkins_cert_issuer.stdout | default(''))
+          )
+        )
+      }}
+  when: jenkins_enable_https | bool
+
 # ---- Certbot SSL for Jenkins ----
 - name: Obtain Let's Encrypt certificate for Jenkins
   ansible.builtin.command:
@@ -71,7 +108,7 @@
     - "'Certificate not yet due for renewal' not in certbot_result.stdout"
   when:
     - jenkins_enable_https | bool
-    - not (cert_status.stat.exists | default(false))
+    - jenkins_cert_needs_issuance | default(false) | bool
 
 - name: Ensure Certbot auto-renewal timer is enabled
   ansible.builtin.systemd:
