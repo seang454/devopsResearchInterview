@@ -10,4 +10,4 @@ certbot_staging: false
 sonarqube_web_port: 9000
 
 # Mock required secret for learning. Replace/rotate for production.
-sonarqube_database_password: "Oo6a7mCoAFseD4ST98JZf04R2YIQHuqG"
+sonarqube_database_password: "sonarqubedb@12345"

@@ -19,7 +19,7 @@ defectdojo_db_host: localhost
 defectdojo_db_port: 5432
 
 # Django application
-defectdojo_secret_key: ""
+defectdojo_secret_key: "d3f3ctD0j0-S3cr3tK3y!Str0ng&S3cur3#2024@Ansibl3-R0l3-K3y!"
 defectdojo_admin_user: admin
 defectdojo_admin_password: "defectdojoadmin@12345"
 defectdojo_admin_email: "pengseangsim210@gmail.com"

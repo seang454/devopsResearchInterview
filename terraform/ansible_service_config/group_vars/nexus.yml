@@ -10,4 +10,4 @@ certbot_staging: false
 
 # First run can print the initial Nexus password.
 # After you change it in the UI, set the new password here or in Ansible Vault.
-nexus_admin_password: ""
+nexus_admin_password: "nexusadmin@12345"
