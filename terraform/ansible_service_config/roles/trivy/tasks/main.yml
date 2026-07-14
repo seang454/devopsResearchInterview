@@ -2,7 +2,7 @@
 - name: Validate supported OS family
   ansible.builtin.assert:
     that:
-      - ansible_os_family in ['Debian']
+      - ansible_facts['os_family'] in ['Debian']
       - trivy_install_method in ['apt', 'binary']
     fail_msg: "This role supports Debian/Ubuntu and trivy_install_method values of apt or binary."
 
@@ -98,7 +98,7 @@
 
 - name: Set Trivy binary architecture
   ansible.builtin.set_fact:
-    trivy_binary_arch: "{{ trivy_binary_arch_map[ansible_architecture] | default(ansible_architecture) }}"
+    trivy_binary_arch: "{{ trivy_binary_arch_map[ansible_facts['architecture']] | default(ansible_facts['architecture']) }}"
   when: trivy_install_method == 'binary'
 
 - name: Download Trivy binary archive

@@ -40,7 +40,7 @@
   when:
     - service_config_start_docker | bool
     - "'docker.io' in service_config_system_packages"
-    - ansible_service_mgr == 'systemd'
+    - ansible_facts['service_mgr'] == 'systemd'
 
 - name: Warn when Docker service could not be started
   ansible.builtin.debug:
