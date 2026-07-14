@@ -29,11 +29,11 @@
     regexp: '^(\s*port:\s*)80\s*$'
     replace: '\g<1>{{ harbor_http_port }}'
 
-- name: Make sure the https block stays commented out (HTTP-only, TLS handled by your own reverse proxy)
+- name: Disable HTTPS block in harbor.yml (HTTP-only, TLS handled by your own reverse proxy)
   ansible.builtin.replace:
     path: "{{ harbor_install_dir }}/harbor.yml"
-    regexp: '^(https:\s*)$'
-    replace: '#\g<1>'
+    regexp: '(?m)^https:\s*(?:\n\s+.*)*'
+    replace: ''
 
 - name: Set initial Harbor admin password
   ansible.builtin.replace:
