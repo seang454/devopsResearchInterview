@@ -17,7 +17,7 @@ ExecStart={{ defectdojo_install_dir }}/venv/bin/celery \
     -A dojo \
     beat \
     --loglevel=warning \
-    --scheduler django_celery_beat.schedulers:DatabaseScheduler \
+    --schedule={{ defectdojo_install_dir }}/dojo.celery.beat.db \
     --logfile=/var/log/defectdojo/celery-beat.log
 
 Restart=on-failure

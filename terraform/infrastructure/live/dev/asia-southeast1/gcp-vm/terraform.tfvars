@@ -55,13 +55,14 @@ ssh_public_key_path = "~/.ssh/id_rsa.pub"
 
 # Terraform writes the VM external IPs into this Ansible inventory after apply.
 ansible_inventory_path       = "../../../../../ansible_service_config/inventories/dev/hosts.ini"
-ansible_inventory_groups     = ["defectdojo", "jenkins", "nexus", "sonarqube", "trivy", "vault"]
+ansible_inventory_groups     = ["defectdojo", "harbor", "jenkins", "nexus", "sonarqube", "trivy", "vault"]
 ansible_ssh_private_key_path = "~/.ssh/id_rsa"
 
 # Explicit service-to-VM map. This keeps inventory correct even while
 # Cloudflare DNS is disabled.
 ansible_service_targets = {
   defectdojo = { vm_index = 2 }
+  harbor     = { vm_index = 2 }
   jenkins    = { vm_index = 1 }
   nexus      = { vm_index = 2 }
   sonarqube  = { vm_index = 1 }
@@ -85,6 +86,13 @@ cloudflare_api_token  = ""
 cloudflare_dns_records = {
   defectdojo = {
     hostname = "defectdojo.seang.shop"
+    type     = "A"
+    vm_index = 2
+    proxied  = false
+  }
+
+  harbor = {
+    hostname = "harbor.seang.shop"
     type     = "A"
     vm_index = 2
     proxied  = false

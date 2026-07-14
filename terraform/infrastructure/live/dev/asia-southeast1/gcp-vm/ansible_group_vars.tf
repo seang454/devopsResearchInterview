@@ -22,6 +22,10 @@ locals {
       defectdojo_domain = try(var.cloudflare_dns_records.defectdojo.hostname, "")
     }
 
+    harbor = {
+      harbor_domain = try(var.cloudflare_dns_records.harbor.hostname, "")
+    }
+
     jenkins = {
       jenkins_domain = try(var.cloudflare_dns_records.jenkins.hostname, "")
     }

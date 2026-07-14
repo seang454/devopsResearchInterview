@@ -5,6 +5,12 @@
   roles:
     - sonarqube
 
+- name: Configure Harbor servers
+  hosts: harbor
+  become: true
+  roles:
+    - harbor
+
 - name: Configure Jenkins servers
   hosts: jenkins
   become: true

@@ -65,7 +65,7 @@ ansible_ssh_private_key_path = "~/.ssh/id_rsa"
 
 # Fallback only. When Cloudflare DNS is enabled, Terraform derives groups from
 # cloudflare_dns_records instead.
-ansible_inventory_groups = ["defectdojo", "jenkins", "nexus", "sonarqube", "trivy", "vault"]
+ansible_inventory_groups = ["defectdojo", "harbor", "jenkins", "nexus", "sonarqube", "trivy", "vault"]
 
 # Optional explicit map. Use this if you want dynamic per-service inventory
 # before enabling Cloudflare DNS. Leave empty to derive from Cloudflare records.
@@ -87,6 +87,13 @@ cloudflare_api_token  = ""
 cloudflare_dns_records = {
   defectdojo = {
     hostname = "defectdojo.seang.shop"
+    type     = "A"
+    vm_index = 2
+    proxied  = false
+  }
+
+  harbor = {
+    hostname = "harbor.seang.shop"
     type     = "A"
     vm_index = 2
     proxied  = false

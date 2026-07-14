@@ -1,12 +1,99 @@
 ---
-- name: Clone DefectDojo repository
+- name: Check if DefectDojo install directory exists
+  ansible.builtin.stat:
+    path: "{{ defectdojo_install_dir }}"
+  register: defectdojo_dir
+
+- name: Check if DefectDojo is a Git repository
+  ansible.builtin.stat:
+    path: "{{ defectdojo_install_dir }}/.git"
+  register: defectdojo_git
+
+- name: Ensure existing DefectDojo install directory ownership
+  ansible.builtin.file:
+    path: "{{ defectdojo_install_dir }}"
+    state: directory
+    owner: "{{ defectdojo_user }}"
+    group: "{{ defectdojo_group }}"
+    recurse: true
+  when: defectdojo_dir.stat.exists
+
+- name: Check DefectDojo Git remote
+  ansible.builtin.command:
+    argv:
+      - git
+      - remote
+      - get-url
+      - origin
+    chdir: "{{ defectdojo_install_dir }}"
+  register: defectdojo_git_origin
+  changed_when: false
+  failed_when: false
+  become_user: "{{ defectdojo_user }}"
+  when: defectdojo_git.stat.exists
+
+- name: Add DefectDojo Git remote if missing
+  ansible.builtin.command:
+    argv:
+      - git
+      - remote
+      - add
+      - origin
+      - https://github.com/DefectDojo/django-DefectDojo.git
+    chdir: "{{ defectdojo_install_dir }}"
+  become_user: "{{ defectdojo_user }}"
+  when:
+    - defectdojo_git.stat.exists
+    - defectdojo_git_origin.rc | default(1) != 0
+
+- name: Correct DefectDojo Git remote if needed
+  ansible.builtin.command:
+    argv:
+      - git
+      - remote
+      - set-url
+      - origin
+      - https://github.com/DefectDojo/django-DefectDojo.git
+    chdir: "{{ defectdojo_install_dir }}"
+  become_user: "{{ defectdojo_user }}"
+  when:
+    - defectdojo_git.stat.exists
+    - defectdojo_git_origin.rc | default(1) == 0
+    - defectdojo_git_origin.stdout | trim != "https://github.com/DefectDojo/django-DefectDojo.git"
+
+- name: Remove existing directory if it is not a Git repository
+  ansible.builtin.file:
+    path: "{{ defectdojo_install_dir }}"
+    state: absent
+  when:
+    - defectdojo_dir.stat.exists
+    - not defectdojo_git.stat.exists
+
+- name: Ensure DefectDojo install directory exists
+  ansible.builtin.file:
+    path: "{{ defectdojo_install_dir }}"
+    state: directory
+    owner: "{{ defectdojo_user }}"
+    group: "{{ defectdojo_group }}"
+    mode: "0755"
+
+- name: Clone or update DefectDojo repository
   ansible.builtin.git:
     repo: "https://github.com/DefectDojo/django-DefectDojo.git"
     dest: "{{ defectdojo_install_dir }}"
     version: "{{ defectdojo_version }}"
+    update: true
     force: true
   become_user: "{{ defectdojo_user }}"
   notify: restart defectdojo
+
+- name: Ensure DefectDojo repository ownership
+  ansible.builtin.file:
+    path: "{{ defectdojo_install_dir }}"
+    state: directory
+    owner: "{{ defectdojo_user }}"
+    group: "{{ defectdojo_group }}"
+    recurse: true
 
 - name: Create Python virtual environment
   ansible.builtin.command:
@@ -21,11 +108,51 @@
     virtualenv: "{{ defectdojo_install_dir }}/venv"
   become_user: "{{ defectdojo_user }}"
 
+- name: Install Python packaging tools inside virtualenv
+  ansible.builtin.command:
+    argv:
+      - "{{ defectdojo_install_dir }}/venv/bin/python"
+      - -m
+      - pip
+      - install
+      - --upgrade
+      - "setuptools<81"
+      - wheel
+  become_user: "{{ defectdojo_user }}"
+  changed_when: "'Successfully installed' in defectdojo_packaging_tools.stdout"
+  register: defectdojo_packaging_tools
+
 - name: Install DefectDojo Python requirements
   ansible.builtin.pip:
     requirements: "{{ defectdojo_install_dir }}/requirements.txt"
     virtualenv: "{{ defectdojo_install_dir }}/venv"
     extra_args: "--no-cache-dir"
+  become_user: "{{ defectdojo_user }}"
+
+- name: Install DefectDojo Python compatibility overrides
+  ansible.builtin.command:
+    argv:
+      - "{{ defectdojo_install_dir }}/venv/bin/python"
+      - -m
+      - pip
+      - install
+      - --upgrade
+      - "setuptools<81"
+      - wheel
+      - "Django<5.2"
+      - django-redis
+      - gunicorn
+  become_user: "{{ defectdojo_user }}"
+  changed_when: "'Successfully installed' in defectdojo_compat_packages.stdout"
+  register: defectdojo_compat_packages
+
+- name: Verify required runtime imports are available
+  ansible.builtin.command:
+    argv:
+      - "{{ defectdojo_install_dir }}/venv/bin/python"
+      - -c
+      - "import pkg_resources; import django_redis"
+  changed_when: false
   become_user: "{{ defectdojo_user }}"
 
 - name: Deploy DefectDojo local settings
@@ -37,6 +164,20 @@
     mode: "0640"
   notify: restart defectdojo
   no_log: true
+
+- name: Verify Django serializers are compatible
+  ansible.builtin.command:
+    argv:
+      - "{{ defectdojo_install_dir }}/venv/bin/python"
+      - -c
+      - "import django; django.setup(); from django.core import serializers; serializers.get_public_serializer_formats()"
+    chdir: "{{ defectdojo_install_dir }}"
+  changed_when: false
+  become_user: "{{ defectdojo_user }}"
+  environment:
+    DD_DATABASE_URL: "postgresql://{{ defectdojo_db_user }}:{{ defectdojo_db_password }}@{{ defectdojo_db_host }}:{{ defectdojo_db_port }}/{{ defectdojo_db_name }}"
+    DD_SECRET_KEY: "{{ defectdojo_secret_key }}"
+    DJANGO_SETTINGS_MODULE: "dojo.settings.settings"
 
 - name: Run database migrations
   community.general.django_manage:
@@ -64,16 +205,7 @@
 
 - name: Create DefectDojo superuser (idempotent)
   community.general.django_manage:
-    command: >
-      shell -c "
-      from django.contrib.auth import get_user_model;
-      User = get_user_model();
-      User.objects.filter(username='{{ defectdojo_admin_user }}').exists() or
-      User.objects.create_superuser(
-        '{{ defectdojo_admin_user }}',
-        '{{ defectdojo_admin_email }}',
-        '{{ defectdojo_admin_password }}'
-      )"
+    command: "shell -c \"from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username='{{ defectdojo_admin_user }}').exists() or User.objects.create_superuser('{{ defectdojo_admin_user }}', '{{ defectdojo_admin_email }}', '{{ defectdojo_admin_password }}')\""
     app_path: "{{ defectdojo_install_dir }}"
     virtualenv: "{{ defectdojo_install_dir }}/venv"
   become_user: "{{ defectdojo_user }}"
