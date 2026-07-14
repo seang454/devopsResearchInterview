@@ -24,12 +24,15 @@ harbor_install_dir: "{{ harbor_install_parent_dir }}/harbor"
 # ---- Core harbor.yml settings -------------------------------------------------
 # The FQDN or IP clients/docker will use to reach Harbor. Do NOT use
 # localhost/127.0.0.1/0.0.0.0. Change this for your environment.
-harbor_hostname: "reg.yourdomain.com"
+harbor_hostname: "{{ harbor_domain | default('reg.yourdomain.com') }}"
 
 # We are running Harbor as HTTP-only here, on purpose: you said you will
 # terminate TLS yourself (systemd-managed reverse proxy + certbot certs) in
 # front of Harbor, so harbor.yml's own https block stays disabled.
-harbor_http_port: 80
+harbor_http_port: 8050
+
+harbor_enable_https: true
+harbor_certbot_verify_renewal: false
 
 # Initial admin password. Only used on first boot of Harbor - changing it
 # afterwards must be done from the Harbor Portal / API, not by re-running this role.
