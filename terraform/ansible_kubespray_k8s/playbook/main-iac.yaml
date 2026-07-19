@@ -102,12 +102,6 @@
         cmd: python3 -m venv {{ kubespray_venv }}
         creates: "{{ kubespray_venv }}/bin/activate"
 
-    - name: Upgrade pip inside kubespray venv
-      ansible.builtin.pip:
-        name: pip
-        state: latest
-        virtualenv: "{{ kubespray_venv }}"
-
     - name: Install kubespray requirements into venv
       ansible.builtin.pip:
         requirements: "{{ kubespray_requirements }}"
