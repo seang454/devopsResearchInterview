@@ -14,7 +14,13 @@
 #   just reset-cluster   # Wipe the cluster without destroying VMs
 # ==========================================================================
 
-INVENTORY := "kubespray/inventory/sample/inventory.ini"
+# Inventory Terraform writes with real VM IPs — used for pre-flight Ansible playbook.
+# group_vars/all.yml is picked up from here (sibling directory to inventory.ini).
+ANSIBLE_INVENTORY := "inventory.ini"
+
+# Kubespray's own inventory — used only by Kubespray's cluster.yml and reset.yml.
+KUBESPRAY_INVENTORY := "kubespray/inventory/sample/inventory.ini"
+
 KUBESPRAY_VENV := env_var('HOME') + "/kubespray-venv"
 
 # -------------------------------------------------------
@@ -25,7 +31,7 @@ setup-iac:
     @echo "  Step 1: Node pre-flight (zsh, etc.)..."
     @echo "=========================================="
     ANSIBLE_LOCAL_TEMP=/tmp TMPDIR=/tmp \
-      ansible-playbook -i {{INVENTORY}} playbook/main-iac.yaml --ask-become-pass
+      ansible-playbook -i {{ANSIBLE_INVENTORY}} playbook/main-iac.yaml --ask-become-pass
 
     @echo ""
     @echo "=========================================="
@@ -42,7 +48,7 @@ deploy-k8s:
     ANSIBLE_LOCAL_TEMP=/tmp TMPDIR=/tmp \
       {{KUBESPRAY_VENV}}/bin/ansible-playbook \
         -b -v \
-        -i {{INVENTORY}} \
+        -i {{KUBESPRAY_INVENTORY}} \
         kubespray/cluster.yml 2>&1 | tee /tmp/kubespray-deploy.log
 
 # -------------------------------------------------------
