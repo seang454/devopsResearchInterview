@@ -10,6 +10,8 @@ resource "cloudflare_zero_trust_access_application" "protected" {
   type             = "self_hosted"
   session_duration = "24h"
 
+  policies = [cloudflare_zero_trust_access_policy.allow_company_domain_with_mfa[each.key].id]
+
   cors_headers = {
     allowed_methods   = ["GET", "POST"]
     allowed_origins    = ["https://${each.value}.${var.domain}"]

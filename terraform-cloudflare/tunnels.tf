@@ -10,9 +10,9 @@ resource "random_password" "tunnel_secret" {
 resource "cloudflare_zero_trust_tunnel_cloudflared" "k8s" {
   count      = var.enable_tunnel ? 1 : 0
   account_id = var.account_id
-  name       = var.tunnel_name
-  secret     = base64encode(random_password.tunnel_secret[0].result)
-  config_src = "cloudflare"
+  name          = var.tunnel_name
+  tunnel_secret = base64encode(random_password.tunnel_secret[0].result)
+  config_src    = "cloudflare"
 }
 
 resource "cloudflare_zero_trust_tunnel_cloudflared_config" "k8s" {
