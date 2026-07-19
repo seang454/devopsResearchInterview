@@ -39,7 +39,7 @@ resource "cloudflare_zero_trust_access_identity_provider" "github" {
 # }
 
 resource "cloudflare_zero_trust_access_policy" "allow_company_domain_with_mfa" {
-  for_each = var.enable_zero_trust ? cloudflare_zero_trust_access_application.protected : {}
+  count = var.enable_zero_trust ? 1 : 0
 
   account_id     = var.account_id
   name           = "Allow ${join(",", var.access_allowed_email_domains)} with MFA"

@@ -10,7 +10,7 @@ resource "cloudflare_zero_trust_access_application" "protected" {
   type             = "self_hosted"
   session_duration = "24h"
 
-  policies = [cloudflare_zero_trust_access_policy.allow_company_domain_with_mfa[each.key].id]
+  policies = [cloudflare_zero_trust_access_policy.allow_company_domain_with_mfa[0].id]
 
   cors_headers = {
     allowed_methods   = ["GET", "POST"]
