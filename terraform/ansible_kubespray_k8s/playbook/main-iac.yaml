@@ -4,13 +4,7 @@
   tasks:
     - import_tasks: ./tasks/set-venv.yaml
 
-- name: Create workers and master instances
-  hosts: localhost
-  become: false
-  vars_files:
-    - ../vars/machine.yaml
-  tasks:
-    - import_tasks: ./tasks/create-masters-task.yaml
+
 
 # -------------------------------------------------------
 # Wait for ALL nodes to be reachable

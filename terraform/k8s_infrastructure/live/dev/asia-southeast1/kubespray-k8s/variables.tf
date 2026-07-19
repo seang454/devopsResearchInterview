@@ -179,9 +179,15 @@ variable "nodeport_source_ranges" {
 }
 
 variable "kubespray_inventory_path" {
-  description = "Path where Terraform writes the generated Kubespray inventory file."
+  description = "Path where Terraform writes the generated Kubespray inventory file (used by Kubespray cluster.yml)."
   type        = string
   default     = "../../../../../ansible_kubespray_k8s/kubespray/inventory/sample/inventory.ini"
+}
+
+variable "ansible_inventory_path" {
+  description = "Path where Terraform writes the generated Ansible inventory for ansible_kubespray_k8s playbooks (zsh setup, pre-flight checks, etc.)."
+  type        = string
+  default     = "../../../../../ansible_kubespray_k8s/inventory.ini"
 }
 
 variable "ansible_user" {

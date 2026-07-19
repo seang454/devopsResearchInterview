@@ -67,6 +67,10 @@ ansible_ssh_extra_args       = "-o StrictHostKeyChecking=no -o UserKnownHostsFil
 
 kubespray_inventory_path = "../../../../../ansible_kubespray_k8s/kubespray/inventory/sample/inventory.ini"
 
+# Terraform also writes the VM IPs into the ansible_kubespray_k8s main inventory
+# after apply, so Ansible playbooks always have fresh node IPs without manual editing.
+ansible_inventory_path = "../../../../../ansible_kubespray_k8s/inventory.ini"
+
 ssh_source_ranges            = ["0.0.0.0/0"]
 kubernetes_api_source_ranges = ["0.0.0.0/0"]
 internal_source_ranges       = ["10.0.0.0/8"]
