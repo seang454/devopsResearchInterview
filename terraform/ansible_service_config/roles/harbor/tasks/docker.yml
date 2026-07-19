@@ -25,6 +25,21 @@
     state: started
     enabled: true
 
+- name: Check whether docker compose (plugin) is available
+  ansible.builtin.command: docker compose version
+  register: harbor_compose_check
+  changed_when: false
+  failed_when: false
+
+- name: Install Docker Compose v2 package when plugin is missing
+  ansible.builtin.apt:
+    name: docker-compose-v2
+    state: present
+    update_cache: true
+  when:
+    - harbor_compose_check.rc != 0
+    - ansible_facts['os_family'] == 'Debian'
+
 - name: Verify docker compose (plugin) is available
   ansible.builtin.command: docker compose version
   register: harbor_compose_check

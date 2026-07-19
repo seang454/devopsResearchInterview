@@ -24,6 +24,7 @@ module "kubespray_cluster" {
   subnetwork                      = var.subnetwork
   ssh_user                        = var.ssh_user
   ssh_public_key_path             = var.ssh_public_key_path
+  ssh_public_key                  = local.ssh_public_key
   ssh_source_ranges               = var.ssh_source_ranges
   internal_source_ranges          = var.internal_source_ranges
   kubernetes_api_source_ranges    = var.kubernetes_api_source_ranges

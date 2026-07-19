@@ -38,6 +38,7 @@ module "gcp_vm" {
   subnetwork             = var.subnetwork
   ssh_user               = var.ssh_user
   ssh_public_key_path    = var.ssh_public_key_path
+  ssh_public_key         = local.ssh_public_key
 
   ssh_source_ranges                = var.ssh_source_ranges
   public_service_ports             = var.public_service_ports

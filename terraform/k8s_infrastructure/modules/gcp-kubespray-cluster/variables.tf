@@ -166,14 +166,15 @@ variable "ssh_user" {
 }
 
 variable "ssh_public_key_path" {
-  description = "Path to the SSH public key. A leading ~ uses the current Terraform user's home directory."
+  description = "Fallback path to the SSH public key when ssh_public_key is empty. A leading ~ uses the current Terraform user's home directory."
   type        = string
   default     = "~/.ssh/id_rsa.pub"
+}
 
-  validation {
-    condition     = fileexists(pathexpand(var.ssh_public_key_path))
-    error_message = "ssh_public_key_path must point to an existing SSH public key file."
-  }
+variable "ssh_public_key" {
+  description = "SSH public key content to add to GCP VM metadata. When empty, ssh_public_key_path is read instead."
+  type        = string
+  default     = ""
 }
 
 variable "ssh_source_ranges" {

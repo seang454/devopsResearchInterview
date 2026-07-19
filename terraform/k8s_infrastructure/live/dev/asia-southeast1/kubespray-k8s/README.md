@@ -7,6 +7,7 @@ Terraform creates:
 - Control plane VMs, for example `master01`, `master02`, `master03`.
 - Worker VMs, for example `worker01`, `worker02`, `worker03`.
 - Static external IPs for SSH.
+- A local SSH key pair when `ansible_ssh_private_key_file` and `ssh_public_key_path` do not already exist.
 - Internal IPs used by Kubespray as `ip=...`.
 - Firewall rules for SSH, internal cluster traffic, and Kubernetes API access.
 - The generated Kubespray inventory file.
@@ -85,6 +86,17 @@ gcp_adc_file = "~/.config/gcloud/application_default_credentials.json"
 ```
 
 Terraform expands `~` to the current user's home directory.
+
+Terraform also checks these SSH key paths:
+
+```hcl
+ssh_public_key_path           = "~/.ssh/id_rsa.pub"
+ansible_ssh_private_key_file  = "~/.ssh/id_rsa"
+```
+
+If both files already exist, Terraform reuses them. If one or both are missing,
+Terraform generates a new RSA key pair, writes it under `~/.ssh`, and injects the
+public key into each GCP VM's `ssh-keys` metadata for `ssh_user`.
 
 ```bash
 cd terraform/k8s_infrastructure/live/dev/asia-southeast1/kubespray-k8s

@@ -69,6 +69,8 @@ locals {
 
   nodes         = concat(local.control_plane_nodes, local.worker_nodes)
   nodes_by_name = { for node in local.nodes : node.name => node }
+
+  ssh_public_key = trimspace(var.ssh_public_key) != "" ? trimspace(var.ssh_public_key) : trimspace(file(pathexpand(var.ssh_public_key_path)))
 }
 
 resource "terraform_data" "preflight" {
@@ -131,7 +133,7 @@ resource "google_compute_instance" "this" {
   }
 
   metadata = {
-    ssh-keys = "${var.ssh_user}:${file(pathexpand(var.ssh_public_key_path))}"
+    ssh-keys = "${var.ssh_user}:${local.ssh_public_key}"
   }
 
   labels = merge(var.labels, {

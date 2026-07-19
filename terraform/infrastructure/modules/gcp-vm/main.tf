@@ -9,6 +9,7 @@ locals {
   # fallback_regions lets Terraform look outside the preferred region if needed.
   configured_regions = distinct([for zone in local.configured_zones : replace(zone, "/-[a-z]$/", "")])
   discovery_regions  = distinct(concat(local.configured_regions, var.fallback_regions))
+  ssh_public_key     = trimspace(var.ssh_public_key) != "" ? trimspace(var.ssh_public_key) : trimspace(file(pathexpand(var.ssh_public_key_path)))
 }
 
 data "google_compute_zones" "available" {
@@ -125,8 +126,8 @@ resource "google_compute_instance" "this" {
   # The modulo operator (%) rotates through the zone list.
   # Example with 4 VMs and 3 zones:
   # VM 1 -> zone 1, VM 2 -> zone 2, VM 3 -> zone 3, VM 4 -> zone 1 again.
-  zone         = local.machines[count.index].zone
-  tags         = distinct(concat(var.network_tags, [local.network_tag]))
+  zone = local.machines[count.index].zone
+  tags = distinct(concat(var.network_tags, [local.network_tag]))
 
   boot_disk {
     initialize_params {
@@ -147,7 +148,7 @@ resource "google_compute_instance" "this" {
   }
 
   metadata = {
-    ssh-keys = "${var.ssh_user}:${file(pathexpand(var.ssh_public_key_path))}"
+    ssh-keys = "${var.ssh_user}:${local.ssh_public_key}"
   }
 
   labels = var.labels

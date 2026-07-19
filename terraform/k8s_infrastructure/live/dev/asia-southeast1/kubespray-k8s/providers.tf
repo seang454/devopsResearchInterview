@@ -11,12 +11,17 @@ terraform {
       source  = "hashicorp/local"
       version = "~> 2.5"
     }
+
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0"
+    }
   }
 }
 
 provider "google" {
-  project     = var.project_id
-  region      = var.region
+  project = var.project_id
+  region  = var.region
 
   # Empty uses automatic ADC discovery for whichever user runs Terraform.
   # pathexpand lets an optional "~/.config/..." path use the current user.

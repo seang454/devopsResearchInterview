@@ -153,14 +153,9 @@ variable "ssh_user" {
 }
 
 variable "ssh_public_key_path" {
-  description = "Path to the SSH public key. A leading ~ uses the current Terraform user's home directory."
+  description = "Path to the SSH public key. If this file and ansible_ssh_private_key_path do not exist, Terraform generates them. A leading ~ uses the current Terraform user's home directory."
   type        = string
   default     = "~/.ssh/id_rsa.pub"
-
-  validation {
-    condition     = fileexists(pathexpand(var.ssh_public_key_path))
-    error_message = "ssh_public_key_path must point to an existing SSH public key file."
-  }
 }
 
 variable "ssh_source_ranges" {
@@ -237,7 +232,7 @@ variable "ansible_service_targets" {
 }
 
 variable "ansible_ssh_private_key_path" {
-  description = "SSH private key path Ansible should use to connect to the Terraform-created VMs."
+  description = "SSH private key path Ansible should use to connect to the Terraform-created VMs. If this file and ssh_public_key_path do not exist, Terraform generates them."
   type        = string
   default     = "~/.ssh/id_rsa"
 }

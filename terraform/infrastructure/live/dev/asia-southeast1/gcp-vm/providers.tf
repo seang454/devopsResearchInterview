@@ -39,6 +39,12 @@ terraform {
       source  = "cloudflare/cloudflare"
       version = "~> 5.19"
     }
+
+    # Used to generate a local SSH key pair when configured key files are missing.
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0"
+    }
   }
 }
 

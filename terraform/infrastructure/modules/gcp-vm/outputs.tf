@@ -77,12 +77,12 @@ output "instances" {
   description = "VM details keyed by instance name."
   value = {
     for index, instance in google_compute_instance.this : instance.name => {
-      zone          = instance.zone
-      machine_type  = instance.machine_type
-      static_ip     = google_compute_address.this[index].address
-      public_ip     = google_compute_address.this[index].address
-      http_url      = "http://${google_compute_address.this[index].address}"
-      https_url     = "https://${google_compute_address.this[index].address}"
+      zone         = instance.zone
+      machine_type = instance.machine_type
+      static_ip    = google_compute_address.this[index].address
+      public_ip    = google_compute_address.this[index].address
+      http_url     = "http://${google_compute_address.this[index].address}"
+      https_url    = "https://${google_compute_address.this[index].address}"
     }
   }
 }
