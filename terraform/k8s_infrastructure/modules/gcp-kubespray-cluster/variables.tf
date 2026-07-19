@@ -212,3 +212,47 @@ variable "labels" {
   type        = map(string)
   default     = {}
 }
+
+# ---------------------------------------------------------------------------
+# Custom firewall rules
+# ---------------------------------------------------------------------------
+# Each entry creates one google_compute_firewall resource that opens the
+# specified ports for the given protocol and source CIDR ranges.
+#
+# Example (in terraform.tfvars):
+#
+#   custom_firewall_rules = [
+#     {
+#       name          = "http"
+#       protocol      = "tcp"
+#       ports         = ["80", "443"]
+#       source_ranges = ["0.0.0.0/0"]
+#       target        = "all"   # "all" | "control_plane" | "worker"
+#     },
+#     {
+#       name          = "nodeexporter"
+#       protocol      = "tcp"
+#       ports         = ["9100"]
+#       source_ranges = ["10.0.0.0/8"]
+#       target        = "all"
+#     },
+#   ]
+variable "custom_firewall_rules" {
+  description = "List of custom firewall rules to add to the cluster. Each rule opens one or more ports for a given protocol and set of source CIDR ranges. Set target to 'all', 'control_plane', or 'worker' to scope the rule."
+  type = list(object({
+    name          = string
+    protocol      = string
+    ports         = list(string)
+    source_ranges = list(string)
+    target        = optional(string, "all")
+  }))
+  default = []
+
+  validation {
+    condition = alltrue([
+      for rule in var.custom_firewall_rules :
+      contains(["all", "control_plane", "worker"], coalesce(rule.target, "all"))
+    ])
+    error_message = "Each custom_firewall_rules entry target must be 'all', 'control_plane', or 'worker'."
+  }
+}

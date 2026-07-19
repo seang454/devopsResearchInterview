@@ -81,3 +81,40 @@ internal_source_ranges = ["10.0.0.0/8"]
 
 # Leave empty unless you intentionally expose Kubernetes NodePorts publicly.
 nodeport_source_ranges = []
+
+# ---------------------------------------------------------------------------
+# Custom firewall rules
+# ---------------------------------------------------------------------------
+# Add entries here to open any extra port on the cluster VMs.
+# Each entry creates one GCP firewall rule.
+#
+# target: "all"           -> applies to every cluster node
+#         "control_plane" -> applies to control plane nodes only
+#         "worker"        -> applies to worker nodes only
+#
+# Examples:
+#
+# custom_firewall_rules = [
+#   {
+#     name          = "http-https"
+#     protocol      = "tcp"
+#     ports         = ["80", "443"]
+#     source_ranges = ["0.0.0.0/0"]
+#     target        = "all"
+#   },
+#   {
+#     name          = "prometheus-node-exporter"
+#     protocol      = "tcp"
+#     ports         = ["9100"]
+#     source_ranges = ["10.0.0.0/8"]
+#     target        = "all"
+#   },
+#   {
+#     name          = "etcd"
+#     protocol      = "tcp"
+#     ports         = ["2379", "2380"]
+#     source_ranges = ["10.0.0.0/8"]
+#     target        = "control_plane"
+#   },
+# ]
+custom_firewall_rules = []

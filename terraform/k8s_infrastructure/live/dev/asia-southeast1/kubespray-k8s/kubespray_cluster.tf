@@ -29,6 +29,7 @@ module "kubespray_cluster" {
   internal_source_ranges          = var.internal_source_ranges
   kubernetes_api_source_ranges    = var.kubernetes_api_source_ranges
   nodeport_source_ranges          = var.nodeport_source_ranges
+  custom_firewall_rules           = var.custom_firewall_rules
 
   labels = {
     environment = "dev"

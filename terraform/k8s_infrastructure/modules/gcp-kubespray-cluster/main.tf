@@ -194,3 +194,29 @@ resource "google_compute_firewall" "nodeport" {
   source_ranges = var.nodeport_source_ranges
   target_tags   = [local.cluster_tag]
 }
+
+# ---------------------------------------------------------------------------
+# Custom firewall rules (from var.custom_firewall_rules)
+# ---------------------------------------------------------------------------
+resource "google_compute_firewall" "custom" {
+  for_each = {
+    for rule in var.custom_firewall_rules :
+    rule.name => rule
+  }
+
+  name    = "${var.instance_name_prefix}-custom-${each.key}"
+  network = var.network
+
+  allow {
+    protocol = each.value.protocol
+    ports    = each.value.ports
+  }
+
+  source_ranges = each.value.source_ranges
+
+  target_tags = (
+    coalesce(each.value.target, "all") == "control_plane" ? [local.control_plane_tag] :
+    coalesce(each.value.target, "all") == "worker" ? [local.worker_tag] :
+    [local.cluster_tag]
+  )
+}

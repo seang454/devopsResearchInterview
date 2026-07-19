@@ -207,3 +207,22 @@ variable "ansible_ssh_extra_args" {
   type        = string
   default     = "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 }
+
+# ---------------------------------------------------------------------------
+# Custom firewall rules
+# ---------------------------------------------------------------------------
+# Opens arbitrary ports on cluster VMs beyond the built-in SSH / API / internal
+# rules. Each entry creates one GCP firewall rule.
+#
+# target values: "all" (every node), "control_plane", or "worker"
+variable "custom_firewall_rules" {
+  description = "List of custom firewall rules to add to the cluster. Each rule opens one or more ports for a given protocol and set of source CIDR ranges. Set target to 'all', 'control_plane', or 'worker' to scope the rule."
+  type = list(object({
+    name          = string
+    protocol      = string
+    ports         = list(string)
+    source_ranges = list(string)
+    target        = optional(string, "all")
+  }))
+  default = []
+}
