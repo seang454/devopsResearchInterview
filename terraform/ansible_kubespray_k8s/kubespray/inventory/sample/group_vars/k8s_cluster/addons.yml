@@ -1,10 +1,10 @@
 ---
 # Kubernetes dashboard
 # RBAC required. see docs/getting-started.md for access details.
-dashboard_enabled: false
+dashboard_enabled: true
 
 # Helm deployment
-helm_enabled: false
+helm_enabled: true
 
 # Registry deployment
 registry_enabled: false
@@ -13,7 +13,7 @@ registry_enabled: false
 # registry_disk_size: "10Gi"
 
 # Metrics Server deployment
-metrics_server_enabled: false
+metrics_server_enabled: true
 # metrics_server_container_port: 10250
 # metrics_server_kubelet_insecure_tls: true
 # metrics_server_metric_resolution: 15s
@@ -109,7 +109,7 @@ ingress_alb_enabled: false
 # alb_ingress_aws_debug: "false"
 
 # Cert manager deployment
-cert_manager_enabled: false
+cert_manager_enabled: true
 # cert_manager_namespace: "cert-manager"
 # cert_manager_tolerations:
 #   - key: node-role.kubernetes.io/control-plane
@@ -207,7 +207,7 @@ metallb_namespace: "metallb-system"
 #           address_pool:
 #             - pool2
 
-argocd_enabled: false
+argocd_enabled: true
 # argocd_namespace: argocd
 # Default password:
 #   - https://argo-cd.readthedocs.io/en/stable/getting_started/#4-login-using-the-cli
