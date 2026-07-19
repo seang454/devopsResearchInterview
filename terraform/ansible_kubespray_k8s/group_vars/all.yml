@@ -24,9 +24,9 @@ kubespray_log: "/tmp/kubespray-deploy.log"
 kubespray_runner: "/tmp/run-kubespray.sh"
 
 # Virtualenv paths
-kubespray_venv: "{{ ansible_env.HOME }}/kubespray-venv"
+kubespray_venv: "{{ ansible_facts['env']['HOME'] }}/kubespray-venv"
 kubespray_requirements: "{{ kubespray_dir }}/requirements.txt"
 
 # GCP / Ansible collections
-ansible_collections_path: "{{ ansible_env.HOME }}/.ansible/collections"
-gcp_credentials: "{{ ansible_env.HOME }}/.config/gcloud/application_default_credentials.json"
+ansible_collections_path: "{{ ansible_facts['env']['HOME'] }}/.ansible/collections"
+gcp_credentials: "{{ ansible_facts['env']['HOME'] }}/.config/gcloud/application_default_credentials.json"
