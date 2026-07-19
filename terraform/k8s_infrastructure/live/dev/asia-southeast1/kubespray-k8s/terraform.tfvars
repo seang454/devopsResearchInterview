@@ -4,7 +4,8 @@ zone       = "asia-southeast1-a"
 
 # Kubespray cluster size.
 # For stacked etcd HA, 1 or 3 control plane nodes is usually better than 2.
-control_plane_count = 2
+# Kubespray strictly requires an odd number of etcd nodes (which we stack on the control plane)
+control_plane_count = 1
 worker_count        = 3
 
 cluster_name         = "kubespray"
