@@ -2,10 +2,16 @@
 # LoadBalancer IP. Pair this with `cloudflared` running as a Deployment in
 # your cluster (Helm chart: community-charts/cloudflared or a raw manifest).
 
+resource "random_password" "tunnel_secret" {
+  count   = var.enable_tunnel ? 1 : 0
+  length  = 64
+}
+
 resource "cloudflare_zero_trust_tunnel_cloudflared" "k8s" {
   count      = var.enable_tunnel ? 1 : 0
   account_id = var.account_id
   name       = var.tunnel_name
+  secret     = base64encode(random_password.tunnel_secret[0].result)
   config_src = "cloudflare"
 }
 
@@ -48,8 +54,4 @@ output "tunnel_id" {
   description = "Tunnel ID — use this in the cloudflared Deployment's credentials/config."
 }
 
-output "tunnel_token" {
-  value       = var.enable_tunnel ? cloudflare_zero_trust_tunnel_cloudflared.k8s[0].tunnel_token : null
-  sensitive   = true
-  description = "Token used by `cloudflared tunnel run --token <this>` inside the cluster."
-}
+# (tunnel_token is no longer exported in provider v5.x)

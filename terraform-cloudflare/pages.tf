@@ -32,5 +32,5 @@ resource "cloudflare_pages_domain" "frontend" {
   count      = var.enable_pages ? 1 : 0
   account_id = var.account_id
   project_name = cloudflare_pages_project.frontend[0].name
-  domain     = "app.${var.domain}"
+  name     = "app.${var.domain}"
 }

@@ -42,10 +42,9 @@ resource "cloudflare_zero_trust_access_policy" "allow_company_domain_with_mfa" {
   for_each = var.enable_zero_trust ? cloudflare_zero_trust_access_application.protected : {}
 
   account_id     = var.account_id
-  application_id = each.value.id
+  app_id         = each.value.id
   name           = "Allow ${join(",", var.access_allowed_email_domains)} with MFA"
   decision       = "allow"
-  precedence     = 1
 
   include = [
     {

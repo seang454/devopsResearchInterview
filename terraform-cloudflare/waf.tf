@@ -43,5 +43,4 @@ resource "cloudflare_bot_management" "this" {
   zone_id            = var.zone_id
   fight_mode         = true
   enable_js          = true
-  using_latest_model = true
 }

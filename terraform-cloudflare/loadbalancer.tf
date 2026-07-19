@@ -47,8 +47,8 @@ resource "cloudflare_load_balancer" "this" {
   count            = var.enable_load_balancer ? 1 : 0
   zone_id          = var.zone_id
   name             = "${var.load_balancer_hostname}.${var.domain}"
-  fallback_pool_id = cloudflare_load_balancer_pool.clusters[0].id
-  default_pool_ids = [cloudflare_load_balancer_pool.clusters[0].id]
+  fallback_pool = cloudflare_load_balancer_pool.clusters[0].id
+  default_pools = [cloudflare_load_balancer_pool.clusters[0].id]
   proxied          = true
   steering_policy  = "off" # or "dynamic_latency", "geo", "random"
 
