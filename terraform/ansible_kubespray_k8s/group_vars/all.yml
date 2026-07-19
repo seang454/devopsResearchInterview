@@ -1,0 +1,22 @@
+---
+# ---------------------------------------------------------------------------
+# ansible_kubespray_k8s — shared variables
+# All paths use ansible_env.HOME so they work for any user account.
+# ---------------------------------------------------------------------------
+
+# SSH / connection
+ansible_ssh_extra_args: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+
+# Kubespray paths (relative to this repo root)
+kubespray_dir: "{{ playbook_dir | dirname }}/kubespray"
+kubespray_inventory: "{{ kubespray_dir }}/inventory/sample/inventory.ini"
+kubespray_log: "/tmp/kubespray-deploy.log"
+kubespray_runner: "/tmp/run-kubespray.sh"
+
+# Virtualenv paths
+kubespray_venv: "{{ ansible_env.HOME }}/kubespray-venv"
+kubespray_requirements: "{{ kubespray_dir }}/requirements.txt"
+
+# GCP / Ansible collections
+ansible_collections_path: "{{ ansible_env.HOME }}/.ansible/collections"
+gcp_credentials: "{{ ansible_env.HOME }}/.config/gcloud/application_default_credentials.json"

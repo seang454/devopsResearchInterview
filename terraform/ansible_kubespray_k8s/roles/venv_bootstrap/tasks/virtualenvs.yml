@@ -1,5 +1,6 @@
-- name: Create GCP venv and install dependencies
-  pip:
+---
+- name: Create GCP venv and install Python dependencies
+  ansible.builtin.pip:
     name:
       - requests
       - google-auth
