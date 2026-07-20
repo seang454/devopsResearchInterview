@@ -3,9 +3,10 @@
 ############################################
 
 variable "cloudflare_api_token" {
-  description = "Cloudflare API token (scoped, not the legacy Global API Key)."
+  description = "Cloudflare API token (scoped, not the legacy Global API Key). Leave blank to use the CLOUDFLARE_API_TOKEN environment variable."
   type        = string
   sensitive   = true
+  default     = null
 }
 
 variable "account_id" {
