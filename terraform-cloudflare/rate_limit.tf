@@ -23,7 +23,8 @@ resource "cloudflare_ruleset" "rate_limiting" {
         # Free plan only supports period = 10 seconds
         period              = 10
         requests_per_period = rl.requests_per_period
-        mitigation_timeout  = rl.mitigation_timeout
+        # Free plan only supports mitigation_timeout = 10 seconds
+        mitigation_timeout  = 10
         requests_to_origin  = false
       }
     }
