@@ -45,14 +45,8 @@ resource "cloudflare_ruleset" "custom_firewall" {
         enabled     = true
       },
     ],
-    var.block_tor ? [
-      {
-        action      = "block"
-        expression  = "(ip.src in $cf.anonymizer.tor_exit_nodes)"
-        description = "Block Tor exit node traffic"
-        enabled     = true
-      }
-    ] : [],
+    # Note: $cf.anonymizer.tor_exit_nodes requires a paid Cloudflare plan.
+    # Upgrade to Pro or Business to re-enable Tor blocking.
     length(var.blocked_asns) > 0 ? [
       {
         action      = "block"

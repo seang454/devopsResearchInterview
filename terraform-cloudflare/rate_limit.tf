@@ -1,6 +1,3 @@
-# Rate limiting on sensitive paths (login, API, wp-login.php, etc.)
-# driven by var.rate_limited_paths.
-
 resource "cloudflare_ruleset" "rate_limiting" {
   zone_id = var.zone_id
   name    = "Rate limiting rules"
@@ -10,7 +7,8 @@ resource "cloudflare_ruleset" "rate_limiting" {
   rules = [
     for key, rl in var.rate_limited_paths : {
       action      = "block"
-      expression  = "http.request.uri.path matches \"${rl.path}\""
+      # Free plan: use 'contains' instead of 'matches' (matches requires Business plan)
+      expression  = "http.request.uri.path contains \"${trimsuffix(rl.path, "/*")}\""
       description = "Rate limit ${key}: ${rl.requests_per_period} req / ${rl.period_seconds}s"
       enabled     = true
       action_parameters = {
@@ -22,9 +20,11 @@ resource "cloudflare_ruleset" "rate_limiting" {
       }
       ratelimit = {
         characteristics     = ["ip.src", "cf.colo.id"]
-        period              = rl.period_seconds
+        # Free plan only supports period = 10 seconds
+        period              = 10
         requests_per_period = rl.requests_per_period
         mitigation_timeout  = rl.mitigation_timeout
+        requests_to_origin  = false
       }
     }
   ]

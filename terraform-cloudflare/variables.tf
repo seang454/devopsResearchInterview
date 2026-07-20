@@ -30,6 +30,12 @@ variable "environment" {
   default     = "dev"
 }
 
+variable "enable_paid_features" {
+  description = "Enable features that require a paid Cloudflare plan (Pro or higher): Managed WAF, Bot Management, Transform Rules, Dynamic Redirects."
+  type        = bool
+  default     = false
+}
+
 ############################################
 # Origin
 ############################################

@@ -21,7 +21,7 @@ resource "cloudflare_zone_setting" "development_mode" {
 # and one rule that ignores query strings on those same paths.
 locals {
   cache_everything_expr = length(var.cache_everything_paths) > 0 ? join(" or ", [
-    for p in var.cache_everything_paths : "http.request.uri.path matches \"${p}\""
+    for p in var.cache_everything_paths : "starts_with(http.request.uri.path, \"${trimsuffix(p, "*")}\")"
   ]) : "false"
 }
 
